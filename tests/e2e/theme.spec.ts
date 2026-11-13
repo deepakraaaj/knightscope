@@ -7,7 +7,9 @@ test('theme toggle switches to light, persists across reloads, and can follow th
   const darkBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   await page.getByRole('button', { name: 'Switch to light theme' }).click();
   await expect(html).toHaveAttribute('data-theme', 'light');
-  expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(darkBg);
+  // The background fades over 0.2 s, so poll until the transition settles.
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(245, 247, 251)');
+  expect(darkBg).toBe('rgb(11, 16, 32)');
   await page.reload();
   await expect(html).toHaveAttribute('data-theme', 'light');
   await page.goto('./#/settings');
