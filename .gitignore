@@ -13,3 +13,8 @@ ios/App/build/
 native/stockfish/stockfish.js/
 native/stockfish/out/
 .DS_Store
+android/keystore/
+android/keystore.properties
+release/
+*.jks
+*.keystore

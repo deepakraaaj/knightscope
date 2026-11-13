@@ -55,7 +55,21 @@ cd android && ./gradlew assembleDebug        # APK: android/app/build/outputs/ap
   - 32-bit (armeabi-v7a) phones use the WASM engine.
 - **Background analysis.** Batch analysis keeps running while the app is minimised. A foreground service with a notification and a partial wake lock keeps it alive.
 - **JDK 21.** `android/gradle.properties` sets `org.gradle.java.home` to this machine's JDK 21. Change that path on other machines.
-- **Release builds** need your own signing configuration. The foreground service uses the `specialUse` type, so the Play Console will ask for a short written justification.
+- **Release builds** are covered in the next section. The foreground service uses the `specialUse` type, so the Play Console will ask for a short written justification.
+
+### Signed release APK
+
+```bash
+npm run android:release      # builds, signs and verifies release/KnightScope-<version>.apk (+ .sha256)
+```
+
+- **Signing key.** The script needs the key, which is never committed. Provide it in one of two ways:
+  - **Locally:** `android/keystore.properties`, containing `storeFile`, `storePassword`, `keyAlias` and `keyPassword`. The `storeFile` path is relative to `android/`.
+  - **In CI:** the environment variables `KS_STORE_FILE`, `KS_STORE_PASSWORD`, `KS_KEY_ALIAS` and `KS_KEY_PASSWORD`.
+- **Create a new key** with:
+  `keytool -genkeypair -keystore android/keystore/knightscope-release.jks -alias knightscope -keyalg RSA -keysize 4096 -validity 10000`
+- **Back up the keystore and its password somewhere safe.** Android only installs updates signed with the same key. If you lose it, users must uninstall and reinstall, which deletes their local data.
+- **Each new release:** bump `versionCode` and `versionName` in `android/app/build.gradle`.
 
 To rebuild the native engine:
 

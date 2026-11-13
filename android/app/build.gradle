@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// Release signing: read from android/keystore.properties (local, never committed) or from
+// environment variables KS_STORE_FILE, KS_STORE_PASSWORD, KS_KEY_ALIAS, KS_KEY_PASSWORD (CI).
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file('keystore.properties')
+if (keystorePropsFile.exists()) keystorePropsFile.withInputStream { keystoreProps.load(it) }
+def ks = { String key, String env -> keystoreProps.getProperty(key) ?: System.getenv(env) }
+def hasReleaseKey = ks('storeFile', 'KS_STORE_FILE') != null
+
 android {
     namespace = "com.kritilabs.knightscope"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -8,7 +16,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -23,8 +31,19 @@ android {
             useLegacyPackaging = true
         }
     }
+    signingConfigs {
+        release {
+            if (hasReleaseKey) {
+                storeFile rootProject.file(ks('storeFile', 'KS_STORE_FILE'))
+                storePassword ks('storePassword', 'KS_STORE_PASSWORD')
+                keyAlias ks('keyAlias', 'KS_KEY_ALIAS')
+                keyPassword ks('keyPassword', 'KS_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (hasReleaseKey) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

@@ -17,7 +17,8 @@
     "engine:full": "node scripts/copy-engine.mjs --full",
     "postinstall": "node scripts/copy-engine.mjs",
     "cap:sync": "npm run build && cap sync",
-    "android:build": "npm run cap:sync && cd android && ./gradlew assembleDebug"
+    "android:build": "npm run cap:sync && cd android && ./gradlew assembleDebug",
+    "android:release": "bash scripts/android-release.sh"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.2",
