@@ -240,6 +240,7 @@ export function SettingsPage() {
 
       <Card icon={Info} title="About and licences">
         <div className="space-y-2 text-sm text-muted">
+          <p className="text-text">KnightScope v{__APP_VERSION__} · Developed by <span className="font-semibold">Deepakraj</span></p>
           <p>KnightScope analyzes games with <a className="text-primary" href="https://stockfishchess.org" target="_blank" rel="noopener noreferrer">Stockfish</a> (GPL-3.0) via <a className="text-primary" href="https://github.com/nmrugg/stockfish.js" target="_blank" rel="noopener noreferrer">stockfish.js</a>. The engine licence is shipped with the app in engines/STOCKFISH-LICENSE.txt, and the engine source is available at <a className="text-primary" href="https://github.com/nmrugg/stockfish.js" target="_blank" rel="noopener noreferrer">github.com/nmrugg/stockfish.js</a> (the Android build uses the commit and patch listed in native/build-android-engine.sh). Opening names come from the Lichess chess-openings dataset (CC0).</p>
           <p>Move labels, accuracy and explanations are KnightScope’s own heuristics built on engine evaluations. They are not equivalent to any other site’s scores, and the tactic detector does not find every tactic.</p>
         </div>

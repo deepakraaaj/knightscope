@@ -91,7 +91,8 @@ export function Shell({ banner }: { banner?: ReactNode }) {
         <div className="mt-auto pt-4">
           <QueueIndicator />
           <div className="mb-2 px-3"><ThemeToggle withLabel /></div>
-          <p className="px-6 pb-4 text-[11px] leading-relaxed text-muted/70">Analysis runs locally with Stockfish. Your games never leave this device unless you export them.</p>
+          <p className="px-6 text-[11px] leading-relaxed text-muted/70">Analysis runs locally with Stockfish. Your games never leave this device unless you export them.</p>
+          <p className="px-6 pb-4 pt-2 text-[11px] text-muted/70">Developed by <span className="font-medium text-muted">Deepakraj</span> · v{__APP_VERSION__}</p>
         </div>
       </aside>
 
@@ -136,6 +137,7 @@ export function Shell({ banner }: { banner?: ReactNode }) {
               </button>
             </div>
             <NavItems onNavigate={() => setDrawer(false)} />
+            <p className="mt-auto px-6 pt-4 text-[11px] text-muted/70">Developed by <span className="font-medium text-muted">Deepakraj</span> · v{__APP_VERSION__}</p>
           </div>
         </div>
       )}

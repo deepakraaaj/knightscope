@@ -3,15 +3,16 @@ import type { EngineTransport } from '@/engine/stockfish/transport';
 
 /**
  * Native Stockfish bridge (Android). Stockfish 19 Lite is compiled with the NDK, shipped as
- * libstockfish.so in jniLibs, and started as a child process from nativeLibraryDir by the
- * KnightScopeEngine plugin. UCI text flows over the Capacitor bridge, one event per line.
+ * libstockfish.so in jniLibs, and started as child processes from nativeLibraryDir by the
+ * KnightScopeEngine plugin. Each instance has an id; UCI text flows over the Capacitor bridge,
+ * one { id, line } event per stdout line.
  */
 export interface NativeEnginePlugin {
   isAvailable(): Promise<{ available: boolean; engineName?: string; cores?: number }>;
-  start(): Promise<void>;
-  send(options: { command: string }): Promise<void>;
-  stop(): Promise<void>;
-  addListener(event: 'line', cb: (data: { line: string }) => void): Promise<PluginListenerHandle>;
+  start(options: { id: string }): Promise<void>;
+  send(options: { id: string; command: string }): Promise<void>;
+  stop(options: { id: string }): Promise<void>;
+  addListener(event: 'line', cb: (data: { id?: string; line: string }) => void): Promise<PluginListenerHandle>;
 }
 
 export const NativeEngine = registerPlugin<NativeEnginePlugin>('KnightScopeEngine');
@@ -25,16 +26,17 @@ export async function nativeEngineInfo(): Promise<{ available: boolean; engineNa
   }
 }
 
-export async function createNativeTransport(): Promise<EngineTransport> {
+/** Transport to one native engine instance. Instances with different ids run as separate processes. */
+export async function createNativeTransport(id: string): Promise<EngineTransport> {
   let onLine: (l: string) => void = () => {};
   let onError: (e: Error) => void = () => {};
   const handle = await NativeEngine.addListener('line', (d) => {
-    if (d?.line) onLine(d.line);
+    if (d?.line && (d.id ?? 'main') === id) onLine(d.line);
   });
-  await NativeEngine.start();
+  await NativeEngine.start({ id });
   return {
     post: (command) => {
-      NativeEngine.send({ command }).catch((e: Error) => onError(new Error(`Native engine error: ${e.message}`)));
+      NativeEngine.send({ id, command }).catch((e: Error) => onError(new Error(`Native engine error: ${e.message}`)));
     },
     setListener: (l, e) => {
       onLine = l;
@@ -42,7 +44,7 @@ export async function createNativeTransport(): Promise<EngineTransport> {
     },
     terminate: () => {
       handle.remove().catch(() => undefined);
-      NativeEngine.stop().catch(() => undefined);
+      NativeEngine.stop({ id }).catch(() => undefined);
     },
   };
 }

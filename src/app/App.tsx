@@ -19,7 +19,8 @@ export function App() {
         // First launch in the native app: prefer the native engine when this build includes it.
         if (Capacitor.isNativePlatform() && !(await db.settings.get('app'))) {
           const info = await nativeEngineInfo();
-          if (info.available) await saveSettings({ engineFlavor: 'native' });
+          // Native engines are single-threaded, so batch analysis runs several in parallel.
+          if (info.available) await saveSettings({ engineFlavor: 'native', maxEngines: Math.max(1, Math.min(3, Math.floor((info.cores ?? 2) / 2) - 1)) });
         }
         void requestPersistentStorage();
         setState({ ready: true, error: null });

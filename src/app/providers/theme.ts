@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 
 export type ThemePref = 'dark' | 'light' | 'system';
 export type ResolvedTheme = 'dark' | 'light';
@@ -24,6 +25,10 @@ function resolve(pref: ThemePref): ResolvedTheme {
 function apply(theme: ResolvedTheme) {
   document.documentElement.dataset.theme = theme;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#F5F7FB' : '#0B1020');
+  // Native apps: keep status/navigation bar icons readable (light icons on dark theme, dark on light).
+  if (Capacitor.isNativePlatform()) {
+    SystemBars.setStyle({ style: theme === 'light' ? SystemBarsStyle.Light : SystemBarsStyle.Dark }).catch(() => undefined);
+  }
 }
 
 interface ThemeState {
