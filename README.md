@@ -29,6 +29,19 @@ npm run test:e2e     # end-to-end tests against the production build
 
 ## Deploying the web app
 
+**Live site:** https://knightscope-delta.vercel.app (Vercel project `knightscope`).
+
+To redeploy from this machine:
+
+```bash
+npx vercel deploy --prod          # build settings come from vercel.json
+BASE_URL=https://knightscope-delta.vercel.app/ npm run test:e2e   # run the end-to-end tests against the live site
+```
+
+- `vercel.json` sets the build command and output folder, the `application/wasm` type for the engine, long-term caching for hashed assets, and basic security headers.
+- `.vercelignore` keeps the Android, iOS and native-engine folders out of the upload.
+
+
 `dist/` is a fully static site. It uses relative paths and hash routing, so any static host works without rewrite rules:
 - Netlify
 - Vercel

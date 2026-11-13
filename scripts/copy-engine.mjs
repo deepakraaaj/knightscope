@@ -1,7 +1,7 @@
 // Copies Stockfish WASM engine files from node_modules into public/engines.
 // Default: lite single-threaded engine (~1.7 MB). Pass --full to also copy the
 // full single-threaded engine (~94 MB) for stronger optional analysis.
-import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -20,3 +20,7 @@ for (const f of files) {
   console.log(`[engine] copied ${f}`);
 }
 copyFileSync(join(root, 'node_modules', 'stockfish', 'Copying.txt'), join(dest, 'STOCKFISH-LICENSE.txt'));
+// List of installed engines, read by the app (avoids probing for files that may not exist).
+const full = existsSync(join(dest, 'stockfish-19-single.js')) && existsSync(join(dest, 'stockfish-19-single.wasm'));
+writeFileSync(join(dest, 'manifest.json'), JSON.stringify({ lite: true, full }) + '\n');
+console.log(`[engine] manifest: lite=true full=${full}`);

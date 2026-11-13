@@ -18,3 +18,5 @@ android/keystore.properties
 release/
 *.jks
 *.keystore
+.vercel
+.env*

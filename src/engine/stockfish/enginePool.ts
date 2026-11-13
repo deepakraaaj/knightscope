@@ -20,8 +20,11 @@ export async function fullEngineAvailable(): Promise<boolean> {
   // The ~94 MB full engine is never bundled into the native apps.
   if (Capacitor.isNativePlatform()) return false;
   try {
-    const r = await fetch(engineUrl('full'), { method: 'HEAD' });
-    return r.ok;
+    // engines/manifest.json is written at install time by scripts/copy-engine.mjs.
+    const r = await fetch(new URL('engines/manifest.json', document.baseURI), { cache: 'no-cache' });
+    if (!r.ok) return false;
+    const m = (await r.json()) as { full?: boolean };
+    return m.full === true;
   } catch {
     return false;
   }

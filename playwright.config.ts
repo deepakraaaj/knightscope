@@ -1,6 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // End-to-end tests run against the production build (vite preview) with the real Stockfish WASM engine.
+// Set BASE_URL to test a deployed site instead, e.g. BASE_URL=https://knightscope-delta.vercel.app/ npm run test:e2e
+const remote = process.env.BASE_URL;
+
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 300_000,
@@ -9,7 +12,7 @@ export default defineConfig({
   workers: 1,
   reporter: [['list']],
   use: {
-    baseURL: 'http://localhost:4173/',
+    baseURL: remote ?? 'http://localhost:4173/',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
@@ -17,7 +20,7 @@ export default defineConfig({
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 960 } }, testIgnore: /mobile(-review)?\.spec\.ts/ },
     { name: 'mobile', use: { ...devices['Pixel 7'] }, testMatch: /mobile(-review)?\.spec\.ts/ },
   ],
-  webServer: {
+  webServer: remote ? undefined : {
     command: 'npm run preview -- --port 4173 --strictPort',
     url: 'http://localhost:4173/',
     reuseExistingServer: true,
