@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { create } from 'zustand';
+import { tone } from '@/app/providers/theme';
 import { AlertTriangle, CheckCircle2, Info, Loader2, X } from 'lucide-react';
 
 export function cx(...c: (string | false | null | undefined)[]) {
@@ -9,8 +10,8 @@ export function cx(...c: (string | false | null | undefined)[]) {
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-primary text-bg hover:bg-[#93adff] font-semibold',
-  secondary: 'bg-elevated text-text border border-border hover:border-[#3a4a63] hover:bg-[#202d44]',
+  primary: 'bg-primary text-on-primary hover:bg-primary-hover font-semibold',
+  secondary: 'bg-elevated text-text border border-border hover:border-border-strong hover:bg-hover',
   ghost: 'text-muted hover:text-text hover:bg-elevated',
   danger: 'bg-bad/10 text-bad border border-bad/30 hover:bg-bad/20',
 };
@@ -57,7 +58,7 @@ export function Card({ children, className, title, action, padded = true }: { ch
 
 export function Badge({ children, color, className }: { children: ReactNode; color?: string; className?: string }) {
   return (
-    <span className={cx('inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium', className)} style={color ? { color, background: `${color}1f`, boxShadow: `inset 0 0 0 1px ${color}40` } : undefined}>
+    <span className={cx('inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium', className)} style={color ? { color: tone(color), background: `${color}1f`, boxShadow: `inset 0 0 0 1px ${color}40` } : undefined}>
       {children}
     </span>
   );
@@ -129,7 +130,7 @@ export function Stat({ label, value, hint, to }: { label: string; value: ReactNo
     </>
   );
   return to ? (
-    <Link to={to} className="card block p-4 transition-colors hover:border-[#3a4a63] hover:bg-[#151f33]">
+    <Link to={to} className="card block p-4 transition-colors hover:border-border-strong hover:bg-surface-hover">
       {body}
     </Link>
   ) : (
@@ -148,10 +149,10 @@ export function ProgressBar({ value, max, label }: { value: number; max: number;
 
 export function Notice({ kind = 'info', children, className }: { kind?: 'info' | 'warn' | 'error' | 'success'; children: ReactNode; className?: string }) {
   const map = {
-    info: { icon: <Info className="size-4 shrink-0" />, cls: 'border-primary/30 bg-primary/5 text-[#c9d6ff]' },
-    warn: { icon: <AlertTriangle className="size-4 shrink-0" />, cls: 'border-warn/30 bg-warn/5 text-[#fde68a]' },
-    error: { icon: <AlertTriangle className="size-4 shrink-0" />, cls: 'border-bad/30 bg-bad/5 text-[#fecaca]' },
-    success: { icon: <CheckCircle2 className="size-4 shrink-0" />, cls: 'border-good/30 bg-good/5 text-[#bbf7d0]' },
+    info: { icon: <Info className="size-4 shrink-0" />, cls: 'border-primary/30 bg-primary/5 text-info-fg' },
+    warn: { icon: <AlertTriangle className="size-4 shrink-0" />, cls: 'border-warn/30 bg-warn/5 text-warn-fg' },
+    error: { icon: <AlertTriangle className="size-4 shrink-0" />, cls: 'border-bad/30 bg-bad/5 text-error-fg' },
+    success: { icon: <CheckCircle2 className="size-4 shrink-0" />, cls: 'border-good/30 bg-good/5 text-success-fg' },
   }[kind];
   return (
     <div role={kind === 'error' ? 'alert' : 'status'} className={cx('flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm', map.cls, className)}>

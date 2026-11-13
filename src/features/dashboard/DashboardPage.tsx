@@ -9,8 +9,10 @@ import { FilterBar } from './FilterBar';
 import { QueuePanel } from '@/features/import/QueuePanel';
 import { formatDate, pct } from '@/utils/format';
 import { Logo } from '@/components/layout/Logo';
+import { useChartColors } from '@/app/providers/theme';
 
 export function DashboardPage() {
+  const c = useChartColors();
   const lib = useLibrary();
   const [filters, setFilters] = useState<GameFilters>(EMPTY_FILTERS);
   const view = useMemo(() => {
@@ -62,7 +64,7 @@ export function DashboardPage() {
               <li key={s} className="rounded-lg border border-border bg-bg p-3"><span className="mr-2 text-primary tabular">{i + 1}</span>{s}</li>
             ))}
           </ol>
-          <Link to="/import" className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-bg hover:bg-[#93adff]"><Download className="size-4" />Import your first games</Link>
+          <Link to="/import" className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-on-primary hover:bg-primary-hover"><Download className="size-4" />Import your first games</Link>
         </div>
       </div>
     );
@@ -123,10 +125,10 @@ export function DashboardPage() {
             <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={view.trend} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-                  <XAxis dataKey="i" stroke="#94A3B8" fontSize={10} />
-                  <YAxis domain={[0, 100]} stroke="#94A3B8" fontSize={10} />
-                  <Tooltip contentStyle={{ background: '#1A2538', border: '1px solid #29364A', borderRadius: 8, fontSize: 12 }} labelFormatter={(_, p) => (p?.[0]?.payload as { label?: string })?.label ?? ''} />
-                  <Line type="monotone" dataKey="acc" stroke="#7C9CFF" strokeWidth={2} dot={{ r: 2 }} name="Accuracy" />
+                  <XAxis dataKey="i" stroke={c.axis} fontSize={10} />
+                  <YAxis domain={[0, 100]} stroke={c.axis} fontSize={10} />
+                  <Tooltip contentStyle={{ background: c.tooltipBg, border: `1px solid ${c.tooltipBorder}`, color: c.text, borderRadius: 8, fontSize: 12 }} labelFormatter={(_, p) => (p?.[0]?.payload as { label?: string })?.label ?? ''} />
+                  <Line type="monotone" dataKey="acc" stroke={c.primary} strokeWidth={2} dot={{ r: 2 }} name="Accuracy" />
                 </LineChart>
               </ResponsiveContainer>
             </div>

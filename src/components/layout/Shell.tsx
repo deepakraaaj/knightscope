@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { BarChart3, BookOpenCheck, BrainCircuit, Download, Gauge, LayoutDashboard, Menu, Microscope, Settings, Target, X } from 'lucide-react';
+import { BarChart3, BookOpenCheck, BrainCircuit, Download, Gauge, LayoutDashboard, Menu, Microscope, Moon, Settings, Sun, Target, X } from 'lucide-react';
+import { useTheme } from '@/app/providers/theme';
 import { db } from '@/storage/database/db';
 import { useRunner } from '@/engine/scheduler/runnerStore';
 import { cx, Toaster } from '@/components/ui';
@@ -19,6 +20,18 @@ export const NAV = [
 ] as const;
 
 const MOBILE_TABS = ['/', '/games', '/mistakes', '/training'];
+
+function ThemeToggle({ withLabel }: { withLabel?: boolean }) {
+  const { resolved, toggle } = useTheme();
+  const next = resolved === 'dark' ? 'light' : 'dark';
+  const Icon = resolved === 'dark' ? Sun : Moon;
+  return (
+    <button onClick={toggle} aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`} className={cx('flex items-center gap-3 rounded-lg text-muted transition-colors hover:bg-elevated hover:text-text', withLabel ? 'w-full px-3 py-2 text-sm' : 'p-2')}>
+      <Icon className={withLabel ? 'size-4' : 'size-5'} aria-hidden />
+      {withLabel && `${next === 'light' ? 'Light' : 'Dark'} theme`}
+    </button>
+  );
+}
 
 function QueueIndicator({ compact }: { compact?: boolean }) {
   const running = useRunner((s) => s.running);
@@ -67,7 +80,7 @@ export function Shell({ banner }: { banner?: ReactNode }) {
   const loc = useLocation();
   return (
     <div className="flex h-full min-h-0">
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-primary focus:px-3 focus:py-1 focus:text-bg">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-primary focus:px-3 focus:py-1 focus:text-on-primary">
         Skip to content
       </a>
       <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface/60 lg:flex">
@@ -77,6 +90,7 @@ export function Shell({ banner }: { banner?: ReactNode }) {
         <NavItems />
         <div className="mt-auto pt-4">
           <QueueIndicator />
+          <div className="mb-2 px-3"><ThemeToggle withLabel /></div>
           <p className="px-6 pb-4 text-[11px] leading-relaxed text-muted/70">Analysis runs locally with Stockfish. Your games never leave this device unless you export them.</p>
         </div>
       </aside>
@@ -86,6 +100,7 @@ export function Shell({ banner }: { banner?: ReactNode }) {
           <Logo />
           <div className="flex items-center gap-2">
             <QueueIndicator compact />
+            <ThemeToggle />
             <button onClick={() => setDrawer(true)} aria-label="Open menu" className="rounded-lg p-2 text-muted hover:bg-elevated hover:text-text">
               <Menu className="size-5" />
             </button>

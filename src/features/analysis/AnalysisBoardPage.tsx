@@ -99,7 +99,7 @@ export function AnalysisBoardPage() {
                 <ol className="flex flex-col gap-2" data-testid="engine-lines">
                   {live.lines.map((l) => (
                     <li key={l.multipv} className="flex gap-2 text-sm">
-                      <span className={cx('w-14 shrink-0 rounded px-1.5 py-0.5 text-center text-xs font-semibold tabular', (l.eval.kind === 'cp' ? l.eval.value >= 0 : l.eval.value > 0) ? 'bg-[#e8ecf4] text-bg' : 'bg-bg text-text')}>{formatEval(l.eval)}</span>
+                      <span className={cx('w-14 shrink-0 rounded px-1.5 py-0.5 text-center text-xs font-semibold tabular', (l.eval.kind === 'cp' ? l.eval.value >= 0 : l.eval.value > 0) ? 'bg-[#e8ecf4] text-[#0b1020]' : 'bg-[#1b2232] text-[#f5f7fb]')}>{formatEval(l.eval)}</span>
                       <button className="min-w-0 text-left text-muted hover:text-text" onClick={() => setMoves((m) => [...m, l.moves[0]])} title="Play the first move of this line">
                         {lineToSan(fen, l.moves.slice(0, 10)).join(' ')}
                       </button>

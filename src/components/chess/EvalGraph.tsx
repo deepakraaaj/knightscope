@@ -3,9 +3,11 @@ import type { PositionAnalysis } from '@/types';
 import { winPercentWhite } from '@/chess/positions/evaluation';
 import { CLASSIFICATION_META } from '@/chess/classification/classify';
 import { formatEval } from '@/utils/format';
+import { useChartColors } from '@/app/providers/theme';
 
 /** White's estimated winning chance after each move. Click to jump to a move. */
 export function EvalGraph({ positions, current, onSelect }: { positions: PositionAnalysis[]; current: number; onSelect: (pliesPlayed: number) => void }) {
+  const c = useChartColors();
   const data = [
     { x: 0, w: positions[0]?.evaluationBefore ? winPercentWhite(positions[0].evaluationBefore) : 50, label: 'Start', ev: positions[0]?.evaluationBefore ?? null },
     ...positions.map((p) => ({ x: p.ply + 1, w: p.evaluationAfter ? winPercentWhite(p.evaluationAfter) : 50, label: `${Math.floor(p.ply / 2) + 1}${p.ply % 2 ? '…' : '.'} ${p.actualSan}`, ev: p.evaluationAfter })),
@@ -29,7 +31,7 @@ export function EvalGraph({ positions, current, onSelect }: { positions: Positio
           <ReferenceLine y={50} stroke="#29364A" />
           <Tooltip
             cursor={{ stroke: '#7C9CFF', strokeWidth: 1 }}
-            contentStyle={{ background: '#1A2538', border: '1px solid #29364A', borderRadius: 8, fontSize: 12 }}
+            contentStyle={{ background: c.tooltipBg, border: `1px solid ${c.tooltipBorder}`, color: c.text, borderRadius: 8, fontSize: 12 }}
             labelFormatter={(_, p) => (p?.[0]?.payload as { label?: string })?.label ?? ''}
             formatter={(_v, _n, item) => [formatEval((item?.payload as { ev?: Parameters<typeof formatEval>[0] })?.ev), 'Eval']}
           />

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { PositionAnalysis } from '@/types';
 import { CLASSIFICATION_META } from '@/chess/classification/classify';
 import { cx } from '@/components/ui';
+import { tone } from '@/app/providers/theme';
 
 export interface MoveRow {
   ply: number;
@@ -36,7 +37,7 @@ export function MoveList({ moves, current, onSelect }: { moves: MoveRow[]; curre
       >
         <span className="font-medium">{m.san}</span>
         {meta && ['brilliant', 'great', 'inaccuracy', 'mistake', 'blunder', 'book'].includes(c!) && (
-          <span className="text-[11px] font-bold" style={{ color: meta.color }} aria-hidden>
+          <span className="text-[11px] font-bold" style={{ color: tone(meta.color) }} aria-hidden>
             {meta.symbol}
           </span>
         )}

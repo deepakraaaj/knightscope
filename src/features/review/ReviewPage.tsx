@@ -22,6 +22,7 @@ import { formatDate, formatEval, pct } from '@/utils/format';
 import { safeGameUrl } from '@/utils/sanitize';
 import type { Classification, Game, PositionAnalysis } from '@/types';
 import { WhyNotMyMove } from './WhyNotMyMove';
+import { tone } from '@/app/providers/theme';
 import { RetryPanel } from './RetryPanel';
 import { addPositionToTraining } from './actions';
 
@@ -192,7 +193,7 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
             </div>
           </div>
           {analysis && positions.length > 0 && (
-            <div className="mx-auto w-full max-w-[680px] rounded-lg border border-border bg-surface p-2">
+            <div className="mx-auto w-full max-w-[680px] rounded-lg border border-border bg-[#1b2232] p-2">
               <EvalGraph positions={positions} current={cur} onSelect={setCur} />
             </div>
           )}
@@ -272,7 +273,7 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
                   ) : (
                     <div className="flex flex-wrap gap-1.5" data-testid="critical-moments">
                       {critical.map((x) => (
-                        <button key={x.ply} onClick={() => setCur(x.ply + 1)} className={cx('rounded-md border px-2 py-1 text-xs tabular transition-colors', cur === x.ply + 1 ? 'border-primary bg-primary/10' : 'border-border hover:border-[#3a4a63]')} style={{ color: CLASSIFICATION_META[x.classification!].color }} aria-label={`${CLASSIFICATION_META[x.classification!].label} at move ${Math.floor(x.ply / 2) + 1}`}>
+                        <button key={x.ply} onClick={() => setCur(x.ply + 1)} className={cx('rounded-md border px-2 py-1 text-xs tabular transition-colors', cur === x.ply + 1 ? 'border-primary bg-primary/10' : 'border-border hover:border-border-strong')} style={{ color: tone(CLASSIFICATION_META[x.classification!].color) }} aria-label={`${CLASSIFICATION_META[x.classification!].label} at move ${Math.floor(x.ply / 2) + 1}`}>
                           {Math.floor(x.ply / 2) + 1}{x.mover === 'w' ? '.' : '…'} {x.actualSan} {CLASSIFICATION_META[x.classification!].symbol}
                         </button>
                       ))}
@@ -295,7 +296,7 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
                     </tr>
                     {SUMMARY_ORDER.map((c) => (
                       <tr key={c}>
-                        <td className="py-0.5"><span style={{ color: CLASSIFICATION_META[c].color }}>{CLASSIFICATION_META[c].symbol}</span> {CLASSIFICATION_META[c].label}</td>
+                        <td className="py-0.5"><span style={{ color: tone(CLASSIFICATION_META[c].color) }}>{CLASSIFICATION_META[c].symbol}</span> {CLASSIFICATION_META[c].label}</td>
                         <td className="text-right tabular">{wc.get(c) ?? 0}</td>
                         <td className="text-right tabular">{bc.get(c) ?? 0}</td>
                       </tr>

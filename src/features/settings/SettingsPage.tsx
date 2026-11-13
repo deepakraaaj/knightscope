@@ -11,6 +11,7 @@ import { Button, Card, Notice, PageHeader, Segmented, Select, toast } from '@/co
 import { cleanText, cleanUsername } from '@/utils/sanitize';
 import { backgroundAnalysis } from '@/engine/native/background';
 import type { AppSettings, ClassificationThresholds, PresetName } from '@/types';
+import { useTheme } from '@/app/providers/theme';
 
 function NumberField({ label, value, onChange, min, max, step = 1, suffix }: { label: string; value: number; onChange: (n: number) => void; min: number; max: number; step?: number; suffix?: string }) {
   return (
@@ -29,6 +30,7 @@ function NumberField({ label, value, onChange, min, max, step = 1, suffix }: { l
 
 export function SettingsPage() {
   const s = useSettings();
+  const theme = useTheme();
   const [names, setNames] = useState({ chesscom: '', lichess: '', other: '' });
   const [fullAvail, setFullAvail] = useState<boolean | null>(null);
   const [native, setNative] = useState<{ available: boolean; engineName?: string; cores?: number } | null>(null);
@@ -205,10 +207,15 @@ export function SettingsPage() {
         <Button className="mt-3" size="sm" variant="ghost" onClick={() => save({ thresholds: DEFAULT_THRESHOLDS })}>Reset to defaults</Button>
       </Card>
 
-      <Card title="Board">
+      <Card title="Appearance">
         <div className="flex flex-wrap gap-6">
           <div>
             <div className="label mb-2">Theme</div>
+            <Segmented label="Colour theme" value={theme.pref} onChange={theme.setPref} options={[{ value: 'dark', label: 'Dark' }, { value: 'light', label: 'Light' }, { value: 'system', label: 'System' }]} />
+            <p className="mt-2 text-xs text-muted">System follows your device setting. Stored on this device only.</p>
+          </div>
+          <div>
+            <div className="label mb-2">Board</div>
             <Segmented label="Board theme" value={s.boardTheme} onChange={(v) => save({ boardTheme: v })} options={[{ value: 'slate', label: 'Slate' }, { value: 'classic', label: 'Wood' }]} />
           </div>
           <div>

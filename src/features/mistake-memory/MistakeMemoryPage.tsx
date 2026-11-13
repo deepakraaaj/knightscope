@@ -14,10 +14,12 @@ import { db } from '@/storage/database/db';
 import { formatDate, formatEval } from '@/utils/format';
 import { forPlayer } from '@/chess/positions/evaluation';
 import type { Mistake, MistakeCategory } from '@/types';
+import { useChartColors } from '@/app/providers/theme';
 
 const SEVERITY_COLOR = { blunder: '#F87171', mistake: '#FB923C', inaccuracy: '#FACC15' } as const;
 
 export function MistakeMemoryPage() {
+  const c = useChartColors();
   const lib = useLibrary();
   const [params, setParams] = useSearchParams();
   const [filters, setFilters] = useState<GameFilters>(EMPTY_FILTERS);
@@ -63,7 +65,7 @@ export function MistakeMemoryPage() {
             <h2 id="weak-heading" className="label mb-3">Your recurring weaknesses · {view.games.length} analyzed games</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {view.stats.map((s) => (
-                <button key={s.category} onClick={() => setParams(category === s.category ? {} : { category: s.category })} className={cx('card p-4 text-left transition-colors hover:border-[#3a4a63]', category === s.category && 'border-primary bg-primary/5')} aria-pressed={category === s.category}>
+                <button key={s.category} onClick={() => setParams(category === s.category ? {} : { category: s.category })} className={cx('card p-4 text-left transition-colors hover:border-border-strong', category === s.category && 'border-primary bg-primary/5')} aria-pressed={category === s.category}>
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-semibold">{CATEGORY_LABEL[s.category]}</h3>
                     {s.category !== 'other' && <ShieldCheck className="size-4 text-good" aria-label="Rule-verified category" />}
@@ -110,10 +112,10 @@ export function MistakeMemoryPage() {
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={view.byOpening} layout="vertical" margin={{ left: 0, right: 12 }}>
-                    <XAxis type="number" allowDecimals={false} stroke="#94A3B8" fontSize={11} />
-                    <YAxis type="category" dataKey="key" width={150} stroke="#94A3B8" fontSize={11} tickFormatter={(v: string) => (v.length > 24 ? v.slice(0, 23) + '…' : v)} />
-                    <Tooltip contentStyle={{ background: '#1A2538', border: '1px solid #29364A', borderRadius: 8, fontSize: 12 }} cursor={{ fill: '#1A2538' }} />
-                    <Bar dataKey="count" fill="#7C9CFF" radius={[0, 4, 4, 0]} name="Mistakes" />
+                    <XAxis type="number" allowDecimals={false} stroke={c.axis} fontSize={11} />
+                    <YAxis type="category" dataKey="key" width={150} stroke={c.axis} fontSize={11} tickFormatter={(v: string) => (v.length > 24 ? v.slice(0, 23) + '…' : v)} />
+                    <Tooltip contentStyle={{ background: c.tooltipBg, border: `1px solid ${c.tooltipBorder}`, color: c.text, borderRadius: 8, fontSize: 12 }} cursor={{ fill: c.cursor }} />
+                    <Bar dataKey="count" fill={c.primary} radius={[0, 4, 4, 0]} name="Mistakes" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -159,7 +161,7 @@ function MistakeCard({ m, hasExercise, game }: { m: Mistake; hasExercise: boolea
         {game ? `${game.white} vs ${game.black} · ${formatDate(game.date)}` : ''} · eval {formatEval(forPlayer(m.evaluationBefore, m.playerColor))} → {formatEval(forPlayer(m.evaluationAfter, m.playerColor))}
       </p>
       <div className="mt-auto flex gap-2">
-        <Link to={`/review/${encodeURIComponent(m.gameId)}?ply=${m.ply + 1}`} className="inline-flex h-8 items-center rounded-lg bg-elevated px-3 text-xs hover:bg-[#202d44]">Open in review</Link>
+        <Link to={`/review/${encodeURIComponent(m.gameId)}?ply=${m.ply + 1}`} className="inline-flex h-8 items-center rounded-lg bg-elevated px-3 text-xs hover:bg-hover">Open in review</Link>
         <Button size="sm" variant="ghost" icon={<GraduationCap className="size-3.5" />} onClick={add} disabled={saved}>{saved ? 'In training' : 'Train this'}</Button>
       </div>
     </div>

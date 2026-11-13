@@ -13,8 +13,51 @@
   --color-warn: #facc15;
   --color-bad: #f87171;
   --color-orange: #fb923c;
+  --color-hover: #202d44;
+  --color-surface-hover: #151f33;
+  --color-border-strong: #3a4a63;
+  --color-primary-hover: #93adff;
+  --color-on-primary: #0b1020;
+  --color-info-fg: #c9d6ff;
+  --color-warn-fg: #fde68a;
+  --color-error-fg: #fecaca;
+  --color-success-fg: #bbf7d0;
   --font-sans: 'Inter Variable', Inter, ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Figtree Variable', Figtree, 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  /* Darkens bright status colours in light mode so text stays readable on white. */
+  --tone-amount: 0%;
+  --skeleton-shine: #223049;
+  color-scheme: dark;
+}
+/* Light theme: same token names, so every utility class follows the active theme. */
+:root[data-theme='light'] {
+  --color-bg: #f5f7fb;
+  --color-surface: #ffffff;
+  --color-elevated: #eef2f8;
+  --color-primary: #3f5fd9;
+  --color-primary-strong: #3350c4;
+  --color-text: #0f172a;
+  --color-muted: #5b6b82;
+  --color-border: #dce3ee;
+  --color-good: #15803d;
+  --color-warn: #a16207;
+  --color-bad: #dc2626;
+  --color-orange: #c2410c;
+  --color-hover: #e4eaf3;
+  --color-surface-hover: #f8fafd;
+  --color-border-strong: #c3cddc;
+  --color-primary-hover: #3350c4;
+  --color-on-primary: #ffffff;
+  --color-info-fg: #1e3a8a;
+  --color-warn-fg: #713f12;
+  --color-error-fg: #7f1d1d;
+  --color-success-fg: #14532d;
+  --tone-amount: 45%;
+  --skeleton-shine: #e2e8f0;
+  color-scheme: light;
 }
 
 @layer base {
@@ -24,6 +67,7 @@
     height: 100%;
   }
   body {
+    transition: background-color 0.2s ease;
     background: var(--color-bg);
     color: var(--color-text);
     font-family: var(--font-sans);
@@ -79,7 +123,7 @@
   100% { background-position: 400px 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, var(--color-elevated) 0px, #223049 80px, var(--color-elevated) 160px);
+  background: linear-gradient(90deg, var(--color-elevated) 0px, var(--skeleton-shine) 80px, var(--color-elevated) 160px);
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
 }

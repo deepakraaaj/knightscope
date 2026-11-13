@@ -118,7 +118,7 @@ export function Board({ id, fen, orientation = 'white', onMove, arrows = [], las
                   setPromotion(null);
                   tryMove(pr.from, pr.to, p);
                 }}
-                className="flex size-12 items-center justify-center rounded-lg bg-elevated text-2xl hover:bg-primary hover:text-bg"
+                className="flex size-12 items-center justify-center rounded-lg bg-elevated text-2xl hover:bg-primary hover:text-on-primary"
                 aria-label={{ q: 'Queen', r: 'Rook', b: 'Bishop', n: 'Knight' }[p]}
               >
                 {chess.turn() === 'w' ? { q: '♕', r: '♖', b: '♗', n: '♘' }[p] : { q: '♛', r: '♜', b: '♝', n: '♞' }[p]}
