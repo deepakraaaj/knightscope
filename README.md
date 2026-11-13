@@ -31,12 +31,15 @@ npm run test:e2e     # end-to-end tests against the production build
 
 **Live site:** https://knightscope-delta.vercel.app (Vercel project `knightscope`).
 
-To redeploy from this machine:
+**Deploys are automatic:** the Vercel project is connected to this GitHub repository, so every push to `main` builds and publishes the site. Pushes to other branches get their own preview URL.
+
+To test the live site after a deploy:
 
 ```bash
-npx vercel deploy --prod          # build settings come from vercel.json
-BASE_URL=https://knightscope-delta.vercel.app/ npm run test:e2e   # run the end-to-end tests against the live site
+BASE_URL=https://knightscope-delta.vercel.app/ npm run test:e2e
 ```
+
+A manual deploy from this machine is still possible with `npx vercel deploy --prod`.
 
 - `vercel.json` sets the build command and output folder, the `application/wasm` type for the engine, long-term caching for hashed assets, and basic security headers.
 - `.vercelignore` keeps the Android, iOS and native-engine folders out of the upload.
