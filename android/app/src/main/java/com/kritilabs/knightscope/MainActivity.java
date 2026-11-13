@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(KnightScopeEnginePlugin.class);
         registerPlugin(KnightScopeBackgroundPlugin.class);
+        registerPlugin(KnightScopeSystemUiPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

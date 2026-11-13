@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
@@ -13,10 +13,21 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- Paint the status and navigation bars in the app background (Android 14 and older are not
+             edge-to-edge, so otherwise they show as grey strips). The app updates these on theme change. -->
+        <item name="android:windowBackground">@color/ks_surface</item>
+        <item name="android:statusBarColor">@color/ks_background</item>
+        <item name="android:navigationBarColor">@color/ks_surface</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
     </style>
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+        <item name="windowSplashScreenBackground">@color/ks_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="android:statusBarColor">@color/ks_background</item>
+        <item name="android:navigationBarColor">@color/ks_background</item>
     </style>
 </resources>

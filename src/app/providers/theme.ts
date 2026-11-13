@@ -1,5 +1,7 @@
 import { create } from 'zustand';
-import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
+import { Capacitor, SystemBars, SystemBarsStyle, registerPlugin } from '@capacitor/core';
+
+const SystemUi = registerPlugin<{ setBars(o: { color: string; navColor: string; lightBackground: boolean }): Promise<void> }>('KnightScopeSystemUi');
 
 export type ThemePref = 'dark' | 'light' | 'system';
 export type ResolvedTheme = 'dark' | 'light';
@@ -28,6 +30,10 @@ function apply(theme: ResolvedTheme) {
   // Native apps: keep status/navigation bar icons readable (light icons on dark theme, dark on light).
   if (Capacitor.isNativePlatform()) {
     SystemBars.setStyle({ style: theme === 'light' ? SystemBarsStyle.Light : SystemBarsStyle.Dark }).catch(() => undefined);
+    // Android 14 and older: paint the bars in the theme background so the app fills the screen.
+    if (Capacitor.isPluginAvailable('KnightScopeSystemUi')) {
+      SystemUi.setBars({ color: theme === 'light' ? '#F5F7FB' : '#0B1020', navColor: theme === 'light' ? '#FFFFFF' : '#121A2B', lightBackground: theme === 'light' }).catch(() => undefined);
+    }
   }
 }
 
