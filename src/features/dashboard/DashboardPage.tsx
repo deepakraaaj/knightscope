@@ -9,7 +9,6 @@ import { Card, EmptyState, IconChip, PageHeader, PieceWatermark, Skeleton, Stat 
 import { FilterBar } from './FilterBar';
 import { QueuePanel } from '@/features/import/QueuePanel';
 import { formatDate, pct } from '@/utils/format';
-import { Logo } from '@/components/layout/Logo';
 import { useChartColors } from '@/app/providers/theme';
 
 export function DashboardPage() {
@@ -58,8 +57,7 @@ export function DashboardPage() {
       <div className="flex flex-col gap-6">
         <div className="card relative flex flex-col items-start gap-4 overflow-hidden p-6 sm:p-10">
           <PieceWatermark piece="knight" className="-bottom-10 -right-6 size-72 opacity-[0.08]" />
-          <Logo />
-          <h1 className="max-w-xl font-display text-2xl font-semibold sm:text-3xl">Every game teaches you something.</h1>
+          <h1 className="relative max-w-xl font-display text-2xl font-semibold sm:text-3xl">Every game teaches you something.</h1>
           <p className="max-w-xl text-muted">KnightScope reviews your finished games with Stockfish on this device, remembers the mistakes you repeat, and turns them into practice positions from your own games.</p>
           <ol className="relative grid w-full gap-3 text-sm sm:grid-cols-4">
             {([

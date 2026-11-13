@@ -16,7 +16,7 @@
         <!-- Paint the status and navigation bars in the app background (Android 14 and older are not
              edge-to-edge, so otherwise they show as grey strips). The app updates these on theme change. -->
         <item name="android:windowBackground">@color/ks_surface</item>
-        <item name="android:statusBarColor">@color/ks_background</item>
+        <item name="android:statusBarColor">@color/ks_surface</item>
         <item name="android:navigationBarColor">@color/ks_surface</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>

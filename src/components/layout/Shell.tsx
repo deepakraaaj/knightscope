@@ -97,7 +97,7 @@ export function Shell({ banner }: { banner?: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="safe-top sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-bg/90 px-4 py-3 backdrop-blur lg:hidden">
+        <header className="safe-top sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-surface px-4 py-3 lg:hidden">
           <Logo />
           <div className="flex items-center gap-2">
             <QueueIndicator compact />
