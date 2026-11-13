@@ -1,0 +1,15 @@
+node_modules/
+dist/
+dev-dist/
+test-results/
+playwright-report/
+*.log
+public/engines/
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+ios/App/build/
+native/stockfish/stockfish.js/
+native/stockfish/out/
+.DS_Store

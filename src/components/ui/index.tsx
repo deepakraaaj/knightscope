@@ -1,0 +1,247 @@
+import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
+import { create } from 'zustand';
+import { AlertTriangle, CheckCircle2, Info, Loader2, X } from 'lucide-react';
+
+export function cx(...c: (string | false | null | undefined)[]) {
+  return c.filter(Boolean).join(' ');
+}
+
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
+const VARIANTS: Record<Variant, string> = {
+  primary: 'bg-primary text-bg hover:bg-[#93adff] font-semibold',
+  secondary: 'bg-elevated text-text border border-border hover:border-[#3a4a63] hover:bg-[#202d44]',
+  ghost: 'text-muted hover:text-text hover:bg-elevated',
+  danger: 'bg-bad/10 text-bad border border-bad/30 hover:bg-bad/20',
+};
+
+export function Button({ variant = 'secondary', size = 'md', loading, icon, children, className, disabled, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: 'sm' | 'md'; loading?: boolean; icon?: ReactNode }) {
+  return (
+    <button
+      {...rest}
+      disabled={disabled || loading}
+      className={cx(
+        'inline-flex items-center justify-center gap-2 rounded-lg transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap',
+        size === 'sm' ? 'h-8 px-3 text-xs' : 'h-10 px-4 text-sm',
+        VARIANTS[variant],
+        className,
+      )}
+    >
+      {loading ? <Loader2 className="size-4 animate-spin" aria-hidden /> : icon}
+      {children}
+    </button>
+  );
+}
+
+export function IconButton({ label, children, className, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { label: string }) {
+  return (
+    <button {...rest} aria-label={label} title={label} className={cx('inline-flex size-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-elevated hover:text-text disabled:opacity-40', className)}>
+      {children}
+    </button>
+  );
+}
+
+export function Card({ children, className, title, action, padded = true }: { children: ReactNode; className?: string; title?: ReactNode; action?: ReactNode; padded?: boolean }) {
+  return (
+    <section className={cx('card', className)}>
+      {(title || action) && (
+        <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+          <h2 className="text-sm font-semibold">{title}</h2>
+          {action}
+        </header>
+      )}
+      <div className={padded ? 'p-4' : ''}>{children}</div>
+    </section>
+  );
+}
+
+export function Badge({ children, color, className }: { children: ReactNode; color?: string; className?: string }) {
+  return (
+    <span className={cx('inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium', className)} style={color ? { color, background: `${color}1f`, boxShadow: `inset 0 0 0 1px ${color}40` } : undefined}>
+      {children}
+    </span>
+  );
+}
+
+export function Spinner({ label }: { label?: string }) {
+  return (
+    <span className="inline-flex items-center gap-2 text-sm text-muted" role="status">
+      <Loader2 className="size-4 animate-spin" aria-hidden />
+      {label}
+    </span>
+  );
+}
+
+export function Skeleton({ className }: { className?: string }) {
+  return <div className={cx('skeleton rounded-lg', className)} aria-hidden />;
+}
+
+export function EmptyState({ icon, title, body, action }: { icon: ReactNode; title: string; body: ReactNode; action?: ReactNode }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+      <div className="flex size-11 items-center justify-center rounded-xl border border-border bg-elevated text-primary">{icon}</div>
+      <h3 className="text-base font-semibold">{title}</h3>
+      <div className="max-w-md text-sm text-muted">{body}</div>
+      {action}
+    </div>
+  );
+}
+
+export function Select<T extends string>({ value, onChange, options, label, className }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; label: string; className?: string }) {
+  return (
+    <label className={cx('flex flex-col gap-1', className)}>
+      <span className="label">{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value as T)} className="input h-9 py-0 pr-8">
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; label: string }) {
+  return (
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-lg border border-border bg-bg p-0.5">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          role="radio"
+          aria-checked={value === o.value}
+          onClick={() => onChange(o.value)}
+          className={cx('rounded-md px-3 py-1.5 text-xs font-medium transition-colors', value === o.value ? 'bg-elevated text-text shadow-sm' : 'text-muted hover:text-text')}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function Stat({ label, value, hint, to }: { label: string; value: ReactNode; hint?: ReactNode; to?: string }) {
+  const body = (
+    <>
+      <div className="label">{label}</div>
+      <div className="tabular mt-1.5 font-display text-2xl font-semibold">{value}</div>
+      {hint && <div className="mt-1 text-xs text-muted">{hint}</div>}
+    </>
+  );
+  return to ? (
+    <Link to={to} className="card block p-4 transition-colors hover:border-[#3a4a63] hover:bg-[#151f33]">
+      {body}
+    </Link>
+  ) : (
+    <div className="card p-4">{body}</div>
+  );
+}
+
+export function ProgressBar({ value, max, label }: { value: number; max: number; label: string }) {
+  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
+  return (
+    <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={max} aria-valuenow={value} className="h-1.5 w-full overflow-hidden rounded-full bg-bg">
+      <div className="h-full rounded-full bg-primary transition-[width] duration-300" style={{ width: `${pct}%` }} />
+    </div>
+  );
+}
+
+export function Notice({ kind = 'info', children, className }: { kind?: 'info' | 'warn' | 'error' | 'success'; children: ReactNode; className?: string }) {
+  const map = {
+    info: { icon: <Info className="size-4 shrink-0" />, cls: 'border-primary/30 bg-primary/5 text-[#c9d6ff]' },
+    warn: { icon: <AlertTriangle className="size-4 shrink-0" />, cls: 'border-warn/30 bg-warn/5 text-[#fde68a]' },
+    error: { icon: <AlertTriangle className="size-4 shrink-0" />, cls: 'border-bad/30 bg-bad/5 text-[#fecaca]' },
+    success: { icon: <CheckCircle2 className="size-4 shrink-0" />, cls: 'border-good/30 bg-good/5 text-[#bbf7d0]' },
+  }[kind];
+  return (
+    <div role={kind === 'error' ? 'alert' : 'status'} className={cx('flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm', map.cls, className)}>
+      <span className="mt-0.5">{map.icon}</span>
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
+  );
+}
+
+export function Modal({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    ref.current?.focus();
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6" onClick={onClose}>
+      <div
+        ref={ref}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(e) => e.stopPropagation()}
+        className={cx('card max-h-[92vh] w-full overflow-y-auto rounded-b-none outline-none sm:rounded-xl', wide ? 'sm:max-w-5xl' : 'sm:max-w-lg')}
+      >
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface px-4 py-3">
+          <h2 className="text-sm font-semibold">{title}</h2>
+          <IconButton label="Close" onClick={onClose}>
+            <X className="size-4" />
+          </IconButton>
+        </header>
+        <div className="p-4">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ toasts
+
+interface Toast {
+  id: number;
+  kind: 'info' | 'success' | 'error';
+  text: string;
+}
+const useToasts = create<{ toasts: Toast[]; push: (t: Omit<Toast, 'id'>) => void; dismiss: (id: number) => void }>((set) => ({
+  toasts: [],
+  push: (t) => {
+    const id = Date.now() + Math.random();
+    set((s) => ({ toasts: [...s.toasts.slice(-3), { ...t, id }] }));
+    setTimeout(() => set((s) => ({ toasts: s.toasts.filter((x) => x.id !== id) })), t.kind === 'error' ? 8000 : 4000);
+  },
+  dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((x) => x.id !== id) })),
+}));
+
+export const toast = {
+  info: (text: string) => useToasts.getState().push({ kind: 'info', text }),
+  success: (text: string) => useToasts.getState().push({ kind: 'success', text }),
+  error: (text: string) => useToasts.getState().push({ kind: 'error', text }),
+};
+
+export function Toaster() {
+  const { toasts, dismiss } = useToasts();
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6 lg:items-end" aria-live="polite">
+      {toasts.map((t) => (
+        <div key={t.id} className={cx('pointer-events-auto flex max-w-md items-start gap-2 rounded-lg border bg-elevated px-3 py-2.5 text-sm shadow-xl', t.kind === 'error' ? 'border-bad/40' : t.kind === 'success' ? 'border-good/40' : 'border-border')}>
+          {t.kind === 'error' ? <AlertTriangle className="mt-0.5 size-4 text-bad" /> : t.kind === 'success' ? <CheckCircle2 className="mt-0.5 size-4 text-good" /> : <Info className="mt-0.5 size-4 text-primary" />}
+          <span className="flex-1">{t.text}</span>
+          <button onClick={() => dismiss(t.id)} aria-label="Dismiss" className="text-muted hover:text-text">
+            <X className="size-4" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function PageHeader({ title, description, actions }: { title: string; description?: ReactNode; actions?: ReactNode }) {
+  return (
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 className="text-xl font-semibold sm:text-2xl">{title}</h1>
+        {description && <p className="mt-1 max-w-2xl text-sm text-muted">{description}</p>}
+      </div>
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
