@@ -3,10 +3,17 @@ import { winPercentWhite } from '@/chess/positions/evaluation';
 import { formatEval } from '@/utils/format';
 import { cx } from '@/components/ui';
 
-export function EvalBar({ evaluation, orientation = 'white', horizontal }: { evaluation: Evaluation | null; orientation?: 'white' | 'black'; horizontal?: boolean }) {
+export function EvalBar({ evaluation, orientation = 'white', horizontal, thin }: { evaluation: Evaluation | null; orientation?: 'white' | 'black'; horizontal?: boolean; thin?: boolean }) {
   const white = evaluation ? winPercentWhite(evaluation) : 50;
   const label = formatEval(evaluation);
   const whiteOnBottom = orientation === 'white';
+  if (horizontal && thin) {
+    return (
+      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-[#1b2232]" aria-label={`Evaluation ${label}`} role="img">
+        <div className="absolute inset-y-0 left-0 bg-[#e8ecf4] transition-[width] duration-300" style={{ width: `${white}%` }} />
+      </div>
+    );
+  }
   if (horizontal) {
     return (
       <div className="relative h-5 w-full overflow-hidden rounded bg-[#1b2232]" aria-label={`Evaluation ${label}`} role="img">

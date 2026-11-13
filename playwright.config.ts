@@ -14,8 +14,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 960 } }, testIgnore: /mobile\.spec\.ts/ },
-    { name: 'mobile', use: { ...devices['Pixel 7'] }, testMatch: /mobile\.spec\.ts/ },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 960 } }, testIgnore: /mobile(-review)?\.spec\.ts/ },
+    { name: 'mobile', use: { ...devices['Pixel 7'] }, testMatch: /mobile(-review)?\.spec\.ts/ },
   ],
   webServer: {
     command: 'npm run preview -- --port 4173 --strictPort',

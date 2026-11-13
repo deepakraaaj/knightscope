@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ArrowLeftRight, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ExternalLink, GraduationCap, Microscope, Play, RotateCcw, Scale } from 'lucide-react';
+import { ArrowLeftRight, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, ExternalLink, GraduationCap, Microscope, Play, RotateCcw, Scale, SkipBack, SkipForward } from 'lucide-react';
 import { db } from '@/storage/database/db';
 import { enqueueGames, latestCompleteAnalysis, positionsFor } from '@/storage/repositories';
 import { startQueue } from '@/engine/scheduler/queueRunner';
@@ -13,9 +13,9 @@ import { forPlayer } from '@/chess/positions/evaluation';
 import { Board } from '@/components/chess/Board';
 import { EvalBar } from '@/components/chess/EvalBar';
 import { EvalGraph } from '@/components/chess/EvalGraph';
-import { MoveList } from '@/components/chess/MoveList';
+import { MoveList, MoveStrip } from '@/components/chess/MoveList';
 import { ClassificationBadge, ConfidenceBadge } from '@/components/chess/badges';
-import { Badge, Button, Card, EmptyState, Hint, IconButton, Notice, Skeleton, cx, toast } from '@/components/ui';
+import { Badge, Button, EmptyState, IconButton, Notice, Skeleton, cx, toast } from '@/components/ui';
 import { useKeyboardNav } from '@/hooks/useKeyboardNav';
 import { useSettings } from '@/hooks/data';
 import { formatDate, formatEval, pct } from '@/utils/format';
@@ -129,7 +129,7 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
     const elo = color === 'w' ? game.whiteElo : game.blackElo;
     const acc = analysis ? (color === 'w' ? analysis.whiteAccuracy : analysis.blackAccuracy) : null;
     return (
-      <div className="flex items-center justify-between gap-2 py-1.5 text-sm">
+      <div className="flex items-center justify-between gap-2 py-1 text-xs sm:py-1.5 sm:text-sm">
         <div className="flex min-w-0 items-center gap-2">
           <span className={cx('size-3 shrink-0 rounded-sm border border-border', color === 'w' ? 'bg-[#e8ecf4]' : 'bg-[#0b1020]')} aria-hidden />
           <span className={cx('truncate', game.userColor === color && 'font-semibold')}>{name}</span>
@@ -141,12 +141,35 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
     );
   };
 
+  const keyPlies = critical.map((x) => x.ply + 1);
+  const prevKey = [...keyPlies].reverse().find((k) => k < cur);
+  const nextKey = keyPlies.find((k) => k > cur);
+  const isError = !!p && ERROR_CLASSES.includes(p.classification!);
+  const canCompare = !!p && !!p.bestMove && p.bestMove !== p.actualMove && p.classification !== 'book';
+
+  // Swipe left/right on the board to step through moves (phones).
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const t = touch.current;
+    touch.current = null;
+    if (!t || retry) return;
+    const dx = e.changedTouches[0].clientX - t.x;
+    const dy = e.changedTouches[0].clientY - t.y;
+    if (Math.abs(dx) > 50 && Math.abs(dy) < 40) setCur(dx < 0 ? cur + 1 : cur - 1);
+  };
+
+  const moveRows = parsed.moves.map((m) => ({ ply: m.ply, san: m.san, color: m.color, moveNo: Number(m.fenBefore.split(' ')[5]), analysis: byPly.get(m.ply) }));
+
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="truncate text-lg font-semibold sm:text-xl">{game.white} vs {game.black} <span className="text-muted">· {game.result}</span></h1>
-          <p className="text-xs text-muted">
+    <div className="-mt-2 flex flex-col gap-2 sm:mt-0 sm:gap-3 lg:gap-4">
+      {/* On phones the player bars already show both names, so the title is visually hidden to save space. */}
+      <div className="sr-only flex-wrap items-center justify-between gap-x-3 gap-y-1 sm:not-sr-only sm:flex">
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-base font-semibold sm:text-xl">{game.white} vs {game.black} <span className="text-muted">· {game.result}</span></h1>
+          <p className="truncate text-xs text-muted">
             {formatDate(game.date)} · <span className="capitalize">{game.timeClass}</span>{game.timeControl ? ` (${game.timeControl})` : ''} · {game.opening ?? 'Opening unknown'}
             {url && (
               <a href={url} target="_blank" rel="noopener noreferrer" className="ml-2 inline-flex items-center gap-1 text-primary">Source <ExternalLink className="size-3" /></a>
@@ -154,7 +177,7 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
           </p>
         </div>
         {analysis && (
-          <p className="text-xs text-muted">
+          <p className="hidden text-xs text-muted sm:block">
             {analysis.engineVersion} · {analysis.analysisSettings.preset} preset · depth {analysis.analysisSettings.screeningDepth}/{analysis.analysisSettings.deepDepth}
           </p>
         )}
@@ -171,11 +194,13 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
         </Notice>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
-        <div className="flex min-w-0 flex-col gap-2">
-          <div className="mx-auto w-full max-w-[680px]">
+      {/* Phones: one column ordered board → controls → move strip → verdict → graph → summary.
+          Desktop: board + graph on the left, verdict + summary on the right. */}
+      <div className="flex flex-col gap-2 sm:gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-5">
+        <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-2">
+          <div className="order-1 mx-auto w-full max-w-[680px]">
             <PlayerBar color={flip ? 'w' : 'b'} />
-            <div className="flex gap-2">
+            <div className="flex gap-2" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
               {analysis && <div className="hidden sm:flex"><EvalBar evaluation={evalNow} orientation={orientation} /></div>}
               <div className="min-w-0 flex-1">
                 {retry && p ? (
@@ -191,81 +216,107 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
                 )}
               </div>
             </div>
-            {analysis && <div className="mt-2 sm:hidden"><EvalBar evaluation={evalNow} horizontal /></div>}
+            {analysis && <div className="mt-1 sm:hidden"><EvalBar evaluation={evalNow} horizontal thin /></div>}
             <PlayerBar color={flip ? 'b' : 'w'} />
-            <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-1">
+            <div className="flex items-center justify-between rounded-lg border border-border bg-surface p-0.5">
               <div className="flex">
                 <IconButton label="Start (Home)" onClick={() => setCur(0)} disabled={cur === 0}><ChevronFirst className="size-5" /></IconButton>
                 <IconButton label="Previous move (Left arrow)" onClick={() => setCur(cur - 1)} disabled={cur === 0}><ChevronLeft className="size-5" /></IconButton>
                 <IconButton label="Next move (Right arrow)" onClick={() => setCur(cur + 1)} disabled={cur === total}><ChevronRight className="size-5" /></IconButton>
                 <IconButton label="End (End)" onClick={() => setCur(total)} disabled={cur === total}><ChevronLast className="size-5" /></IconButton>
               </div>
-              <span className="text-xs text-muted tabular">{cur}/{total}</span>
+              {analysis && keyPlies.length > 0 ? (
+                <div className="flex items-center rounded-md bg-orange/10 text-orange">
+                  <IconButton label="Previous key moment" className="text-orange hover:text-orange" onClick={() => prevKey !== undefined && setCur(prevKey)} disabled={prevKey === undefined}><SkipBack className="size-4" /></IconButton>
+                  <span className="hidden text-[11px] font-medium min-[380px]:inline">Key moves</span>
+                  <IconButton label="Next key moment" className="text-orange hover:text-orange" onClick={() => nextKey !== undefined && setCur(nextKey)} disabled={nextKey === undefined}><SkipForward className="size-4" /></IconButton>
+                </div>
+              ) : (
+                <span className="text-xs text-muted tabular">{cur}/{total}</span>
+              )}
               <IconButton label="Flip board (F)" onClick={() => setFlip((f) => !f)}><ArrowLeftRight className="size-4" /></IconButton>
             </div>
           </div>
+
+          <div className="order-2 lg:hidden">
+            <MoveStrip moves={moveRows} current={cur} onSelect={setCur} />
+          </div>
+
           {analysis && positions.length > 0 && (
-            <div className="mx-auto w-full max-w-[680px] rounded-lg border border-border bg-[#1b2232] p-2">
+            <div className="order-4 mx-auto w-full max-w-[680px] rounded-lg border border-border bg-[#1b2232] p-2">
               <EvalGraph positions={positions} current={cur} onSelect={setCur} />
             </div>
           )}
         </div>
 
-        <div className="flex min-w-0 flex-col gap-4">
-          {p && analysis && (
-            <Card padded>
-              <div className="flex flex-wrap items-center gap-2" data-testid="current-move">
-                <span className="font-display text-lg font-semibold">{Math.floor(p.ply / 2) + 1}{p.mover === 'w' ? '.' : '…'} {p.actualSan}</span>
-                <ClassificationBadge c={p.classification} />
-                <ConfidenceBadge label={p.confidence?.label} />
-              </div>
-              <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <dt className="text-muted">Eval before</dt>
-                <dd className="tabular">{formatEval(p.evaluationBefore)}</dd>
-                <dt className="text-muted">Eval after</dt>
-                <dd className="tabular">{formatEval(p.evaluationAfter)}</dd>
-                {p.winPercentLoss !== null && p.winPercentLoss > 0.5 && (
-                  <>
-                    <dt className="text-muted">Winning chances lost</dt>
-                    <dd className="tabular">{p.winPercentLoss.toFixed(1)}%</dd>
-                  </>
-                )}
-                {p.centipawnLoss !== null && p.centipawnLoss > 0 && (
-                  <>
-                    <dt className="text-muted">Centipawn loss</dt>
-                    <dd className="tabular">{p.centipawnLoss}</dd>
-                  </>
-                )}
-                <dt className="text-muted">Engine best</dt>
-                <dd className="font-medium">{p.bestSan ?? '–'}</dd>
-                <dt className="text-muted">Depth</dt>
-                <dd className="tabular">{p.depth} <span className="text-xs text-muted">({p.stage === 'deep' ? 'deep pass' : 'screening'})</span></dd>
-              </dl>
-              {p.bestMove && p.bestMove !== p.actualMove && p.classification !== 'book' && (
-                <Hint className="mt-3">The green arrow on the board shows the engine’s better move. Press “Why not my move?” to compare both lines side by side.</Hint>
-              )}
-              {p.principalVariation.length > 0 && (
-                <p className="mt-3 text-xs leading-relaxed text-muted">
-                  <span className="label mr-1">Line</span>
-                  {lineToSan(p.fen, p.principalVariation.slice(0, 10)).join(' ')}
+        <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-4">
+          <section className="card order-3 min-h-[148px] p-3 lg:p-4" aria-live="polite">
+            {!p ? (
+              <div className="flex h-full flex-col justify-center gap-1.5" data-testid="current-move">
+                <span className="font-display text-base font-semibold">{cur === 0 ? 'Start position' : move?.san}</span>
+                <p className="text-sm text-muted">
+                  {cur === 0 ? (analysis ? 'Use the arrows, swipe the board, or tap a move below. Orange “Key moves” jumps between mistakes and standout moves.' : 'Use the arrows or swipe the board to step through the game.') : 'This move has no analysis yet.'}
                 </p>
-              )}
-              {p.confidence && p.confidence.reasons.length > 0 && p.confidence.label !== 'stable' && (
-                <p className="mt-2 text-xs text-muted">{CONFIDENCE_META[p.confidence.label].description} {p.confidence.reasons[0]}</p>
-              )}
-              {p.classification === 'brilliant' && <p className="mt-2 text-xs text-muted">Brilliant: a material sacrifice the engine confirmed at multiple depths. This is a heuristic label, not a certainty.</p>}
-              {p.bestMove && p.bestMove !== p.actualMove && p.classification !== 'book' && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button size="sm" variant="primary" icon={<Scale className="size-3.5" />} onClick={() => setWhy(true)}>Why not my move?</Button>
-                  <Button size="sm" icon={<RotateCcw className="size-3.5" />} onClick={() => setRetry(true)}>Retry position</Button>
-                  <Button size="sm" icon={<GraduationCap className="size-3.5" />} onClick={addToTraining}>Add to training</Button>
-                  <Link to={`/analysis?fen=${encodeURIComponent(p.fen)}`} className="inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs text-muted hover:bg-elevated hover:text-text"><Microscope className="size-3.5" />Analyze</Link>
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center gap-2" data-testid="current-move">
+                  <span className="font-display text-base font-semibold lg:text-lg">{Math.floor(p.ply / 2) + 1}{p.mover === 'w' ? '.' : '…'} {p.actualSan}</span>
+                  <ClassificationBadge c={p.classification} />
+                  <span className="ml-auto text-sm font-medium tabular">{formatEval(p.evaluationAfter)}</span>
                 </div>
-              )}
-            </Card>
-          )}
+                <p className="mt-1.5 text-sm">
+                  {p.classification ? LABEL_HELP[p.classification] : ''}
+                  {canCompare && (
+                    <span className="text-muted"> Better was <span className="font-semibold text-good">{p.bestSan}</span>{p.winPercentLoss !== null && p.winPercentLoss > 0.5 ? ` (you lost ${p.winPercentLoss.toFixed(0)}% winning chances)` : ''}.</span>
+                  )}
+                </p>
+                {canCompare ? (
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <Button size="sm" variant={isError ? 'primary' : 'secondary'} icon={<Scale className="size-3.5" />} onClick={() => setWhy(true)} aria-label="Why not my move?">
+                      <span className="sm:hidden">Why not?</span><span className="hidden sm:inline">Why not my move?</span>
+                    </Button>
+                    <Button size="sm" icon={<RotateCcw className="size-3.5" />} onClick={() => setRetry(true)} aria-label="Retry position">
+                      <span className="sm:hidden">Retry</span><span className="hidden sm:inline">Retry position</span>
+                    </Button>
+                    <Button size="sm" icon={<GraduationCap className="size-3.5" />} onClick={addToTraining} aria-label="Add to training">
+                      <span className="sm:hidden">Train</span><span className="hidden sm:inline">Add to training</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="mt-3 text-xs text-muted">{p.classification === 'book' ? 'Opening theory. Nothing to improve here.' : 'You played the engine’s choice or something just as good.'}</p>
+                )}
+                <details className="mt-3 text-sm">
+                  <summary className="cursor-pointer text-xs text-muted">Engine details</summary>
+                  <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                    <dt className="text-muted">Eval before → after</dt>
+                    <dd className="tabular">{formatEval(p.evaluationBefore)} → {formatEval(p.evaluationAfter)}</dd>
+                    {p.centipawnLoss !== null && p.centipawnLoss > 0 && (
+                      <>
+                        <dt className="text-muted">Centipawn loss</dt>
+                        <dd className="tabular">{p.centipawnLoss}</dd>
+                      </>
+                    )}
+                    <dt className="text-muted">Engine best</dt>
+                    <dd className="font-medium">{p.bestSan ?? '–'}</dd>
+                    <dt className="text-muted">Depth</dt>
+                    <dd className="tabular">{p.depth} <span className="text-xs text-muted">({p.stage === 'deep' ? 'deep pass' : 'screening'})</span></dd>
+                    <dt className="text-muted">Confidence</dt>
+                    <dd><ConfidenceBadge label={p.confidence?.label} /></dd>
+                  </dl>
+                  {p.principalVariation.length > 0 && (
+                    <p className="mt-2 text-xs leading-relaxed text-muted"><span className="label mr-1">Line</span>{lineToSan(p.fen, p.principalVariation.slice(0, 10)).join(' ')}</p>
+                  )}
+                  {p.confidence && p.confidence.reasons.length > 0 && p.confidence.label !== 'stable' && (
+                    <p className="mt-2 text-xs text-muted">{CONFIDENCE_META[p.confidence.label].description} {p.confidence.reasons[0]}</p>
+                  )}
+                  <Link to={`/analysis?fen=${encodeURIComponent(p.fen)}`} className="mt-2 inline-flex items-center gap-1.5 text-xs text-primary"><Microscope className="size-3.5" />Open this position on the analysis board</Link>
+                </details>
+              </>
+            )}
+          </section>
 
-          <div className="card flex min-h-0 flex-col">
+          <div className="card order-5 flex min-h-0 flex-col">
             <div className="flex border-b border-border" role="tablist">
               {(['summary', 'moves'] as const).map((t) => (
                 <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={cx('flex-1 px-4 py-2.5 text-sm capitalize', tab === t ? 'border-b-2 border-primary text-text' : 'text-muted hover:text-text')}>
@@ -273,9 +324,13 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
                 </button>
               ))}
             </div>
+            <p className="border-b border-border px-4 py-2 text-xs text-muted sm:hidden">
+              Result {game.result} · {game.opening ?? 'Opening unknown'} · {formatDate(game.date)}
+              {url && <a href={url} target="_blank" rel="noopener noreferrer" className="ml-2 text-primary">Source</a>}
+            </p>
             {tab === 'moves' ? (
               <div className="max-h-[440px] p-2">
-                <MoveList moves={parsed.moves.map((m) => ({ ply: m.ply, san: m.san, color: m.color, moveNo: Number(m.fenBefore.split(' ')[5]), analysis: byPly.get(m.ply) }))} current={cur} onSelect={setCur} />
+                <MoveList moves={moveRows} current={cur} onSelect={setCur} />
               </div>
             ) : !analysis ? (
               <p className="p-4 text-sm text-muted">The summary appears after analysis.</p>
