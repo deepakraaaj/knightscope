@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { BrainCircuit, GraduationCap, ShieldCheck } from 'lucide-react';
+import { BrainCircuit, ChartBar, Clock3, GraduationCap, History, ShieldCheck, TrendingDown } from 'lucide-react';
+import { CATEGORY_INFO } from './categories';
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useLibrary } from '@/hooks/data';
 import { CATEGORY_LABEL, EMPTY_FILTERS, filterGames, gameTime, groupCount, relevantMistakes, weaknessStats, type GameFilters } from '@/features/analytics/aggregate';
-import { Badge, Button, Card, EmptyState, PageHeader, Skeleton, cx, toast } from '@/components/ui';
+import { Badge, Button, Card, EmptyState, IconChip, PageHeader, PieceWatermark, Skeleton, cx, toast } from '@/components/ui';
 import { Board } from '@/components/chess/Board';
 import { ConfidenceBadge } from '@/components/chess/badges';
 import { FilterBar } from '@/features/dashboard/FilterBar';
@@ -50,7 +51,7 @@ export function MistakeMemoryPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Mistake memory" description="Recurring mistakes from your analyzed games. A category is assigned only when a detection rule confirmed it against the engine line; everything else stays under Other / Unclassified." />
+      <PageHeader icon={BrainCircuit} steps={['Analyze games', 'Click a weakness card', 'See the exact positions', 'Press “Train this”']} title="Mistake memory" description="Recurring mistakes from your analyzed games. A category is assigned only when a detection rule confirmed it against the engine line; everything else stays under Other / Unclassified." />
       <FilterBar filters={filters} onChange={setFilters} games={lib.games} />
       {!anyUsername && lib.games.length > 0 && (
         <p className="text-xs text-muted">No username is set, so mistakes from both players are counted. Set your usernames in <Link to="/settings" className="text-primary">Settings</Link> to focus on your own moves.</p>
@@ -65,13 +66,18 @@ export function MistakeMemoryPage() {
             <h2 id="weak-heading" className="label mb-3">Your recurring weaknesses · {view.games.length} analyzed games</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {view.stats.map((s) => (
-                <button key={s.category} onClick={() => setParams(category === s.category ? {} : { category: s.category })} className={cx('card p-4 text-left transition-colors hover:border-border-strong', category === s.category && 'border-primary bg-primary/5')} aria-pressed={category === s.category}>
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold">{CATEGORY_LABEL[s.category]}</h3>
+                <button key={s.category} onClick={() => setParams(category === s.category ? {} : { category: s.category })} className={cx('card relative overflow-hidden p-4 text-left transition-colors hover:border-border-strong', category === s.category && 'border-primary bg-primary/5')} aria-pressed={category === s.category}>
+                  <PieceWatermark piece={CATEGORY_INFO[s.category].piece} />
+                  <div className="relative flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <IconChip icon={CATEGORY_INFO[s.category].icon} color={CATEGORY_INFO[s.category].color} />
+                      <h3 className="font-semibold">{CATEGORY_LABEL[s.category]}</h3>
+                    </div>
                     {s.category !== 'other' && <ShieldCheck className="size-4 text-good" aria-label="Rule-verified category" />}
                   </div>
-                  <div className="mt-2 font-display text-2xl font-semibold tabular">{s.count}</div>
-                  <div className="text-xs text-muted">
+                  <p className="relative mt-2 text-xs text-text/80">{CATEGORY_INFO[s.category].plain}</p>
+                  <div className="relative mt-2 font-display text-2xl font-semibold tabular">{s.count}</div>
+                  <div className="relative text-xs text-muted">
                     {s.category === 'other' ? 'occurrences without a confirmed pattern' : `verified occurrence${s.count === 1 ? '' : 's'}`} · {s.games} game{s.games === 1 ? '' : 's'} · avg cost {s.avgWinLoss.toFixed(0)}%
                   </div>
                 </button>
@@ -89,7 +95,7 @@ export function MistakeMemoryPage() {
           )}
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <Card title="Most costly mistake types">
+            <Card icon={TrendingDown} title="Most costly mistake types" hint="Which mistakes hurt your results the most">
               <ul className="space-y-2 text-sm">
                 {view.byCost.slice(0, 6).map((s) => (
                   <li key={s.category} className="flex justify-between gap-2">
@@ -99,7 +105,7 @@ export function MistakeMemoryPage() {
                 ))}
               </ul>
             </Card>
-            <Card title="By game phase and time control">
+            <Card icon={Clock3} title="By game phase and time control" hint="When your mistakes happen">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 {[view.byPhase, view.byTime].map((g, i) => (
                   <ul key={i} className="space-y-1.5">
@@ -108,7 +114,7 @@ export function MistakeMemoryPage() {
                 ))}
               </div>
             </Card>
-            <Card title="Mistakes by opening">
+            <Card icon={ChartBar} title="Mistakes by opening" hint="Openings where you go wrong most">
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={view.byOpening} layout="vertical" margin={{ left: 0, right: 12 }}>
@@ -120,7 +126,7 @@ export function MistakeMemoryPage() {
                 </ResponsiveContainer>
               </div>
             </Card>
-            <Card title="Recent mistakes">
+            <Card icon={History} title="Recent mistakes" hint="Click one to see it in the game">
               <ul className="divide-y divide-border">
                 {view.recent.slice(0, 8).map((m) => (
                   <li key={m.id} className="flex items-center justify-between gap-2 py-2 text-sm">

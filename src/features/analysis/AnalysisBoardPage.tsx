@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Chess, validateFen } from 'chess.js';
-import { ArrowLeftRight, Cpu, RotateCcw, Undo2 } from 'lucide-react';
+import { ArrowLeftRight, Cpu, FileInput, ListOrdered, Microscope, RotateCcw, Undo2 } from 'lucide-react';
 import { Board } from '@/components/chess/Board';
 import { EvalBar } from '@/components/chess/EvalBar';
 import { Button, Card, IconButton, Notice, PageHeader, Segmented, Spinner, cx } from '@/components/ui';
@@ -52,7 +52,7 @@ export function AnalysisBoardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Analysis board" description="Explore positions from finished games or study positions with Stockfish running on this device." />
+      <PageHeader icon={Microscope} steps={['Move pieces on the board', 'Read the engine lines on the right', 'Click a line to play its first move']} title="Analysis board" description="Explore positions from finished games or study positions with Stockfish running on this device." />
       <Notice kind="info">Use the analysis board only for completed games and study positions. Using engine help during a game you are playing is cheating on every chess site.</Notice>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_400px]">
         <div className="mx-auto flex w-full max-w-[680px] gap-2">
@@ -83,7 +83,7 @@ export function AnalysisBoardPage() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <Card title={<span className="flex items-center gap-2"><Cpu className="size-4 text-primary" />Engine</span>} action={<Segmented label="Engine" value={engineOn ? 'on' : 'off'} onChange={(v) => setEngineOn(v === 'on')} options={[{ value: 'on', label: 'On' }, { value: 'off', label: 'Off' }]} />}>
+          <Card icon={Cpu} piece="queen" title="Engine" hint="Best continuations; + favours White, − favours Black" action={<Segmented label="Engine" value={engineOn ? 'on' : 'off'} onChange={(v) => setEngineOn(v === 'on')} options={[{ value: 'on', label: 'On' }, { value: 'off', label: 'Off' }]} />}>
             {!engineOn ? (
               <p className="text-sm text-muted">Engine is off.</p>
             ) : terminal.over ? (
@@ -109,10 +109,10 @@ export function AnalysisBoardPage() {
               </div>
             )}
           </Card>
-          <Card title="Moves">
+          <Card icon={ListOrdered} title="Moves" hint="Moves you have played on this board">
             {sans.length === 0 ? <p className="text-sm text-muted">Make a move on the board.</p> : <p className="text-sm leading-relaxed">{sans.map((s, i) => <span key={i} className="mr-1.5">{s}</span>)}</p>}
           </Card>
-          <Card title="Load position">
+          <Card icon={FileInput} title="Load position" hint="Paste a FEN to set up any position">
             <div className="flex flex-col gap-2">
               <input className="input font-mono text-xs" placeholder="Paste a FEN" value={fenInput} onChange={(e) => setFenInput(e.target.value)} spellCheck={false} />
               {fenError && <p className="text-xs text-bad">{fenError}</p>}

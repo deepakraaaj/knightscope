@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ClipboardPaste, FileUp, Globe } from 'lucide-react';
+import { BookOpenCheck, CircleDashed, ClipboardPaste, Download, FileUp, Globe, Hourglass, Library } from 'lucide-react';
 import { db } from '@/storage/database/db';
 import { addGames, allUsernames, completedAnalysisByGame, getSettings, refreshUserColors, saveSettings } from '@/storage/repositories';
 import { fetchChessComGames, fetchLichessGames } from './api';
@@ -112,16 +112,16 @@ export function ImportPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Import games" description="Bring in completed games from Chess.com, Lichess or PGN files. Imports are de-duplicated and stored only on this device." />
+      <PageHeader icon={Download} title="Import games" description="Bring in your finished games. Games you already have are skipped automatically, and everything stays on this device." steps={['Choose a source', 'Import your games', 'Tick games in your library', 'Press “Review selected”']} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Imported games" value={stats?.total ?? '–'} />
-        <Stat label="Reviewed" value={stats?.reviewed ?? '–'} />
-        <Stat label="Unreviewed" value={stats ? stats.total - stats.reviewed : '–'} />
-        <Stat label="In analysis queue" value={stats?.queued ?? '–'} to="/import#queue" />
+        <Stat icon={Library} piece="rook" label="Imported games" value={stats?.total ?? '–'} hint="All games in your library" />
+        <Stat icon={BookOpenCheck} piece="bishop" color="#4ADE80" label="Reviewed" value={stats?.reviewed ?? '–'} hint="Checked by Stockfish" />
+        <Stat icon={CircleDashed} piece="pawn" color="#FACC15" label="Unreviewed" value={stats ? stats.total - stats.reviewed : '–'} hint="Not analyzed yet" />
+        <Stat icon={Hourglass} piece="knight" label="In analysis queue" value={stats?.queued ?? '–'} hint="Waiting or being analyzed" to="/import#queue" />
       </div>
 
-      <Card>
+      <Card icon={Globe} piece="knight" title="Add games" hint="Pick where your games come from">
         <div className="mb-4">
           <Segmented
             label="Import source"
@@ -202,7 +202,7 @@ export function ImportPage() {
 
       <QueuePanel />
 
-      <Card title="Your library">
+      <Card icon={Library} title="Your library" hint="Tick games, then press “Review selected” to analyze them">
         <GameTable />
       </Card>
     </div>

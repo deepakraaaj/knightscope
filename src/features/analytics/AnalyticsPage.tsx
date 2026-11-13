@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, TrendingDown, TrendingUp, Minus } from 'lucide-react';
+import { ArrowRightLeft, BarChart3, ListOrdered, TrendingDown, TrendingUp, Minus } from 'lucide-react';
+import { CATEGORY_INFO } from '@/features/mistake-memory/categories';
 import { useLibrary } from '@/hooks/data';
 import { CATEGORY_LABEL, EMPTY_FILTERS, MIN_WINDOW_GAMES, filterGames, improvementComparison, learningPriorities, relevantMistakes, trainingTransfer, type GameFilters, type WindowStats } from './aggregate';
-import { Badge, Card, EmptyState, PageHeader, Segmented, Skeleton } from '@/components/ui';
+import { Badge, Card, EmptyState, IconChip, PageHeader, Segmented, Skeleton } from '@/components/ui';
 import { FilterBar } from '@/features/dashboard/FilterBar';
 import { formatDate } from '@/utils/format';
 
@@ -46,13 +47,13 @@ export function AnalyticsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Improvement analytics" description="Are specific mistakes becoming less frequent? Each weakness is tracked separately, with the context you need to judge the comparison." />
+      <PageHeader icon={BarChart3} steps={['Analyze at least 10 games', 'Compare older vs recent games', 'Check whether training carries over']} title="Improvement analytics" description="Are specific mistakes becoming less frequent? Each weakness is tracked separately, with the context you need to judge the comparison." />
       <FilterBar filters={filters} onChange={setFilters} games={lib.games} />
       {view.games.length === 0 ? (
         <Card><EmptyState icon={<BarChart3 className="size-5" />} title="No analyzed games" body="Analytics are calculated from your analyzed games only." action={<Link to="/import" className="text-sm text-primary">Import and analyze games</Link>} /></Card>
       ) : (
         <>
-          <Card title="Mistake frequency: earlier vs recent games" action={<Segmented label="Window size" value={windowSize} onChange={setWindowSize} options={[{ value: '10', label: '10 games' }, { value: '20', label: '20 games' }, { value: '50', label: '50 games' }]} />}>
+          <Card icon={TrendingDown} piece="pawn" title="Mistake frequency: earlier vs recent games" hint="Fewer occurrences per game = the pattern shows up less often" action={<Segmented label="Window size" value={windowSize} onChange={setWindowSize} options={[{ value: '10', label: '10 games' }, { value: '20', label: '20 games' }, { value: '50', label: '50 games' }]} />}>
             {n < MIN_WINDOW_GAMES ? (
               <p className="text-sm text-muted">{view.games.length} analyzed game{view.games.length === 1 ? '' : 's'} match the filters. At least {MIN_WINDOW_GAMES * 2} are needed for a comparison ({MIN_WINDOW_GAMES} per period).</p>
             ) : view.rows.length === 0 ? (
@@ -71,7 +72,7 @@ export function AnalyticsPage() {
                   <tbody className="divide-y divide-border align-top">
                     {view.rows.map((r) => (
                       <tr key={r.category}>
-                        <td className="py-3 pr-3 text-sm font-medium">{CATEGORY_LABEL[r.category]}</td>
+                        <td className="py-3 pr-3 text-sm font-medium"><span className="flex items-center gap-2"><IconChip icon={CATEGORY_INFO[r.category].icon} color={CATEGORY_INFO[r.category].color} size="sm" />{CATEGORY_LABEL[r.category]}</span></td>
                         <td className="py-3 pr-3"><WindowCell w={r.previous} /></td>
                         <td className="py-3 pr-3"><WindowCell w={r.recent} /></td>
                         <td className="py-3 text-sm">
@@ -89,7 +90,7 @@ export function AnalyticsPage() {
             <p className="mt-3 text-xs text-muted">This compares how often a pattern was detected, not why. Opponents, time controls, openings and analysis depth can all differ between periods, so a change does not prove improvement. A change is only reported when it is at least 2 occurrences and 25%.</p>
           </Card>
 
-          <Card title="Training transfer">
+          <Card icon={ArrowRightLeft} piece="knight" title="Training transfer" hint="Does practising a pattern help you avoid it in real games?">
             {view.transfer.length === 0 ? (
               <p className="text-sm text-muted">No training exercises yet. Training transfer compares your exercise results with what happens in your later games.</p>
             ) : (
@@ -106,7 +107,7 @@ export function AnalyticsPage() {
                   <tbody className="divide-y divide-border align-top">
                     {view.transfer.map((t) => (
                       <tr key={t.category}>
-                        <td className="py-3 pr-3 font-medium">{CATEGORY_LABEL[t.category]}</td>
+                        <td className="py-3 pr-3 font-medium"><span className="flex items-center gap-2"><IconChip icon={CATEGORY_INFO[t.category].icon} color={CATEGORY_INFO[t.category].color} size="sm" />{CATEGORY_LABEL[t.category]}</span></td>
                         <td className="py-3 pr-3 tabular">{t.solveRate === null ? '–' : `${Math.round(t.solveRate * 100)}%`} <span className="text-xs text-muted">({t.attempts} attempts, {t.exercises} exercises)</span></td>
                         <td className="py-3 pr-3 tabular">
                           {t.rateBefore === null ? '–' : t.rateBefore.toFixed(2)} → {t.rateAfter === null ? '–' : t.rateAfter.toFixed(2)}
@@ -122,7 +123,7 @@ export function AnalyticsPage() {
             <p className="mt-3 text-xs text-muted">Solving exercises and avoiding the mistake in real games are different skills. Both are shown so you can see whether practice is carrying over.</p>
           </Card>
 
-          <Card title="How training priorities are ranked">
+          <Card icon={ListOrdered} title="How training priorities are ranked" hint="A transparent formula, no AI">
             <p className="text-sm text-muted">score = 1.0 × occurrences in your last 30 analyzed games + 1.5 × occurrences in the last 10 + 2.0 × (average winning-chance loss ÷ 10) + 3.0 × training failure rate (after 3+ attempts) + 1.0 if the pattern returned after training began.</p>
             {view.priorities.length > 0 && (
               <ol className="mt-3 space-y-1 text-sm">

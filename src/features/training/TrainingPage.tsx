@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CalendarClock, Target, Timer } from 'lucide-react';
+import { CalendarClock, Crosshair, History, ListChecks, Target, Timer } from 'lucide-react';
+import { CATEGORY_INFO } from '@/features/mistake-memory/categories';
 import { useLibrary } from '@/hooks/data';
 import { CATEGORY_LABEL, buildDailySession, learningPriorities, relevantMistakes } from '@/features/analytics/aggregate';
-import { Badge, Button, Card, EmptyState, Notice, PageHeader, Segmented, Skeleton, cx } from '@/components/ui';
+import { Badge, Button, Card, EmptyState, IconChip, Notice, PageHeader, Segmented, Skeleton, cx } from '@/components/ui';
 import { ExercisePlayer } from './ExercisePlayer';
 import type { MistakeCategory, TrainingExercise } from '@/types';
 
@@ -62,7 +63,7 @@ export function TrainingPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Training lab" description="Practice positions taken from your own analyzed games. Stockfish checks every move, and accepts any move that is about as good as its choice." />
+      <PageHeader icon={Target} steps={['Pick a focus or a daily session', 'Find the best move on the board', 'Press “Submit move”', 'Come back when exercises are due']} title="Training lab" description="Practice positions taken from your own analyzed games. Stockfish checks every move, and accepts any move that is about as good as its choice." />
 
       {current ? (
         <Card title={session ? `${session.label} · ${session.index + 1} of ${session.ids.length}` : 'Exercise'} action={<Button size="sm" variant="ghost" onClick={() => { setSession(null); setParams({}); }}>End</Button>}>
@@ -79,7 +80,7 @@ export function TrainingPage() {
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card title="This week's training focus" className="lg:col-span-2">
+        <Card icon={Crosshair} piece="knight" title="This week's training focus" hint="Ranked from the mistakes in your own games" className="lg:col-span-2">
           {data.priorities.length === 0 ? (
             <p className="text-sm text-muted">Not enough categorized mistakes yet. Analyze more games so priorities can be calculated from your own play.</p>
           ) : (
@@ -88,8 +89,10 @@ export function TrainingPage() {
                 <li key={p.category} className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex gap-3">
                     <span className="font-display text-xl font-semibold text-primary tabular">{i + 1}</span>
+                    <IconChip icon={CATEGORY_INFO[p.category].icon} color={CATEGORY_INFO[p.category].color} />
                     <div>
                       <div className="font-medium">{CATEGORY_LABEL[p.category]}</div>
+                      <div className="text-xs text-text/80">{CATEGORY_INFO[p.category].plain}</div>
                       <ul className="mt-0.5 text-xs text-muted">{p.reasons.map((r) => <li key={r}>{r}</li>)}</ul>
                     </div>
                   </div>
@@ -106,7 +109,7 @@ export function TrainingPage() {
           )}
           <p className="mt-4 text-xs text-muted">Ranking = recent frequency, severity, training results and whether the pattern returned after training. The full formula is shown in Improvement analytics.</p>
         </Card>
-        <Card title={<span className="flex items-center gap-2"><Timer className="size-4 text-primary" />Daily practice</span>}>
+        <Card icon={Timer} piece="pawn" title="Daily practice" hint="A short session picked for you">
           <p className="mb-3 text-sm text-muted">A session of due exercises from your top priorities.</p>
           <div className="flex flex-wrap gap-2">
             {([5, 10, 20] as const).map((m) => <Button key={m} variant={m === 10 ? 'primary' : 'secondary'} onClick={() => daily(m)}>{m} minutes</Button>)}
@@ -119,7 +122,7 @@ export function TrainingPage() {
         </Card>
       </div>
 
-      <Card title="Exercises" action={<Segmented label="Exercise list" value={list} onChange={setList} options={[{ value: 'due', label: 'Due' }, { value: 'all', label: 'All' }]} />}>
+      <Card icon={ListChecks} title="Exercises" hint="Positions from your games; “Due” ones are ready to review" action={<Segmented label="Exercise list" value={list} onChange={setList} options={[{ value: 'due', label: 'Due' }, { value: 'all', label: 'All' }]} />}>
         {data.exercises.length === 0 ? (
           <EmptyState icon={<Target className="size-5" />} title="No exercises yet" body="Exercises come from real mistakes in your analyzed games. Open a review and choose “Add to training”, or use “Train this” in Mistake memory." action={<Link to="/mistakes" className="text-sm text-primary">Open Mistake memory</Link>} />
         ) : (
@@ -157,7 +160,7 @@ export function TrainingPage() {
         )}
       </Card>
 
-      <Card title="Training history">
+      <Card icon={History} title="Training history" hint="Every attempt you have made">
         {data.attempts.length === 0 ? (
           <p className="text-sm text-muted">No attempts yet.</p>
         ) : (

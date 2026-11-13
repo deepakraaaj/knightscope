@@ -15,7 +15,7 @@ import { EvalBar } from '@/components/chess/EvalBar';
 import { EvalGraph } from '@/components/chess/EvalGraph';
 import { MoveList } from '@/components/chess/MoveList';
 import { ClassificationBadge, ConfidenceBadge } from '@/components/chess/badges';
-import { Badge, Button, Card, EmptyState, IconButton, Notice, Skeleton, cx, toast } from '@/components/ui';
+import { Badge, Button, Card, EmptyState, Hint, IconButton, Notice, Skeleton, cx, toast } from '@/components/ui';
 import { useKeyboardNav } from '@/hooks/useKeyboardNav';
 import { useSettings } from '@/hooks/data';
 import { formatDate, formatEval, pct } from '@/utils/format';
@@ -27,6 +27,18 @@ import { RetryPanel } from './RetryPanel';
 import { addPositionToTraining } from './actions';
 
 const ERROR_CLASSES: Classification[] = ['blunder', 'mistake', 'inaccuracy'];
+const LABEL_HELP: Record<Classification, string> = {
+  brilliant: 'A real sacrifice that the engine confirmed works.',
+  great: 'The only good move: every other move was much worse.',
+  best: 'Exactly the engine’s top choice.',
+  excellent: 'Almost as good as the best move.',
+  good: 'A reasonable move that gives up a little.',
+  book: 'A known opening move.',
+  forced: 'The only legal move.',
+  inaccuracy: 'A small slip that gave away some advantage.',
+  mistake: 'A clear error that changed the position noticeably.',
+  blunder: 'A serious error, often losing material or the game.',
+};
 const SUMMARY_ORDER: Classification[] = ['brilliant', 'great', 'best', 'excellent', 'good', 'book', 'forced', 'inaccuracy', 'mistake', 'blunder'];
 
 export function ReviewPage() {
@@ -229,6 +241,9 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
                 <dt className="text-muted">Depth</dt>
                 <dd className="tabular">{p.depth} <span className="text-xs text-muted">({p.stage === 'deep' ? 'deep pass' : 'screening'})</span></dd>
               </dl>
+              {p.bestMove && p.bestMove !== p.actualMove && p.classification !== 'book' && (
+                <Hint className="mt-3">The green arrow on the board shows the engine’s better move. Press “Why not my move?” to compare both lines side by side.</Hint>
+              )}
               {p.principalVariation.length > 0 && (
                 <p className="mt-3 text-xs leading-relaxed text-muted">
                   <span className="label mr-1">Line</span>
@@ -267,7 +282,8 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
             ) : (
               <div className="flex flex-col gap-4 p-4">
                 <div>
-                  <div className="label mb-2">Critical moments</div>
+                  <div className="label mb-1">Critical moments</div>
+                  <p className="mb-2 text-xs text-muted">The turning points of the game. Click one to jump to it.</p>
                   {critical.length === 0 ? (
                     <p className="text-sm text-muted">No mistakes or standout moves were detected{game.userColor ? ' for you' : ''}.</p>
                   ) : (
@@ -303,6 +319,17 @@ function ReviewBody({ game, analysis, positions, queued, initialPly, onPly }: Bo
                     ))}
                   </tbody>
                 </table>
+                <details className="rounded-lg border border-border bg-bg p-3 text-sm">
+                  <summary className="cursor-pointer font-medium">What do these labels mean?</summary>
+                  <ul className="mt-2 space-y-1.5">
+                    {SUMMARY_ORDER.map((c) => (
+                      <li key={c} className="flex gap-2 text-xs">
+                        <span className="w-6 shrink-0 font-bold" style={{ color: tone(CLASSIFICATION_META[c].color) }}>{CLASSIFICATION_META[c].symbol}</span>
+                        <span><span className="font-medium">{CLASSIFICATION_META[c].label}:</span> <span className="text-muted">{LABEL_HELP[c]}</span></span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
                 <div className="text-xs text-muted">
                   <div className="label mb-1">Analysis confidence</div>
                   {Object.entries(confidenceTally).map(([k, v]) => `${CONFIDENCE_META[k as keyof typeof CONFIDENCE_META].label}: ${v}`).join(' · ')}

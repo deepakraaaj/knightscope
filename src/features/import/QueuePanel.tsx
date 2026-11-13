@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link } from 'react-router-dom';
-import { Pause, Play, RotateCcw, Square, Trash2 } from 'lucide-react';
+import { Cpu, Pause, Play, RotateCcw, Square, Trash2 } from 'lucide-react';
 import { db } from '@/storage/database/db';
 import { clearFinishedJobs } from '@/storage/repositories';
 import { cancelAll, cancelJob, pauseAll, resumeAll, retryJob, startQueue, useRunner } from '@/engine/scheduler/queueRunner';
@@ -20,7 +20,10 @@ export function QueuePanel() {
 
   return (
     <Card
+      icon={Cpu}
+      piece="queen"
       title={<span id="queue">Analysis queue</span>}
+      hint="Games being checked by Stockfish, one position at a time"
       action={
         <div className="flex flex-wrap gap-2">
           {running ? (

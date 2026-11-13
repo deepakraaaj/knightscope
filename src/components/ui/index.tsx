@@ -2,7 +2,7 @@ import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from 're
 import { Link } from 'react-router-dom';
 import { create } from 'zustand';
 import { tone } from '@/app/providers/theme';
-import { AlertTriangle, CheckCircle2, Info, Loader2, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChessBishop, ChessKing, ChessKnight, ChessPawn, ChessQueen, ChessRook, Info, Loader2, X, type LucideIcon } from 'lucide-react';
 
 export function cx(...c: (string | false | null | undefined)[]) {
   return c.filter(Boolean).join(' ');
@@ -42,16 +42,51 @@ export function IconButton({ label, children, className, ...rest }: ButtonHTMLAt
   );
 }
 
-export function Card({ children, className, title, action, padded = true }: { children: ReactNode; className?: string; title?: ReactNode; action?: ReactNode; padded?: boolean }) {
+export type PieceName = 'king' | 'queen' | 'rook' | 'bishop' | 'knight' | 'pawn';
+const PIECES: Record<PieceName, LucideIcon> = { king: ChessKing, queen: ChessQueen, rook: ChessRook, bishop: ChessBishop, knight: ChessKnight, pawn: ChessPawn };
+
+/** Large faded chess piece used as decorative card artwork. */
+export function PieceWatermark({ piece, className }: { piece: PieceName; className?: string }) {
+  const Icon = PIECES[piece];
+  return <Icon aria-hidden strokeWidth={1.25} className={cx('pointer-events-none absolute -bottom-4 -right-3 size-24 rotate-[-12deg] text-primary opacity-[0.07]', className)} />;
+}
+
+/** Small tinted icon tile used in card headers and stat cards. */
+export function IconChip({ icon: Icon, color = 'var(--color-primary)', size = 'md' }: { icon: LucideIcon; color?: string; size?: 'sm' | 'md' }) {
   return (
-    <section className={cx('card', className)}>
+    <span className={cx('inline-flex shrink-0 items-center justify-center rounded-lg', size === 'sm' ? 'size-7' : 'size-9')} style={{ color, background: `color-mix(in srgb, ${color} 14%, transparent)` }} aria-hidden>
+      <Icon className={size === 'sm' ? 'size-4' : 'size-[18px]'} />
+    </span>
+  );
+}
+
+/** One-line plain-language explanation shown under a heading. */
+export function Hint({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <p className={cx('flex items-start gap-1.5 text-xs text-muted', className)}>
+      <Info className="mt-px size-3.5 shrink-0" aria-hidden />
+      <span>{children}</span>
+    </p>
+  );
+}
+
+export function Card({ children, className, title, action, padded = true, icon, piece, hint }: { children: ReactNode; className?: string; title?: ReactNode; action?: ReactNode; padded?: boolean; icon?: LucideIcon; piece?: PieceName; hint?: ReactNode }) {
+  return (
+    <section className={cx('card relative overflow-hidden', className)}>
+      {piece && <PieceWatermark piece={piece} className="size-32 -bottom-6 -right-4" />}
       {(title || action) && (
-        <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold">{title}</h2>
+        <header className="relative flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            {icon && <IconChip icon={icon} size="sm" />}
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold">{title}</h2>
+              {hint && <p className="mt-0.5 text-xs font-normal text-muted">{hint}</p>}
+            </div>
+          </div>
           {action}
         </header>
       )}
-      <div className={padded ? 'p-4' : ''}>{children}</div>
+      <div className={cx('relative', padded && 'p-4')}>{children}</div>
     </section>
   );
 }
@@ -79,11 +114,12 @@ export function Skeleton({ className }: { className?: string }) {
 
 export function EmptyState({ icon, title, body, action }: { icon: ReactNode; title: string; body: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-      <div className="flex size-11 items-center justify-center rounded-xl border border-border bg-elevated text-primary">{icon}</div>
-      <h3 className="text-base font-semibold">{title}</h3>
-      <div className="max-w-md text-sm text-muted">{body}</div>
-      {action}
+    <div className="relative flex flex-col items-center justify-center gap-3 overflow-hidden px-6 py-12 text-center">
+      <ChessKnight aria-hidden strokeWidth={1} className="pointer-events-none absolute left-1/2 top-1/2 size-56 -translate-x-1/2 -translate-y-1/2 text-primary opacity-[0.05]" />
+      <div className="relative flex size-11 items-center justify-center rounded-xl border border-border bg-elevated text-primary">{icon}</div>
+      <h3 className="relative text-base font-semibold">{title}</h3>
+      <div className="relative max-w-md text-sm text-muted">{body}</div>
+      {action && <div className="relative">{action}</div>}
     </div>
   );
 }
@@ -121,20 +157,24 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
   );
 }
 
-export function Stat({ label, value, hint, to }: { label: string; value: ReactNode; hint?: ReactNode; to?: string }) {
+export function Stat({ label, value, hint, to, icon, piece, color }: { label: string; value: ReactNode; hint?: ReactNode; to?: string; icon?: LucideIcon; piece?: PieceName; color?: string }) {
   const body = (
     <>
-      <div className="label">{label}</div>
-      <div className="tabular mt-1.5 font-display text-2xl font-semibold">{value}</div>
-      {hint && <div className="mt-1 text-xs text-muted">{hint}</div>}
+      {piece && <PieceWatermark piece={piece} />}
+      <div className="relative flex items-center gap-2">
+        {icon && <IconChip icon={icon} size="sm" color={color} />}
+        <div className="label">{label}</div>
+      </div>
+      <div className="tabular relative mt-2 font-display text-2xl font-semibold">{value}</div>
+      {hint && <div className="relative mt-1 text-xs text-muted">{hint}</div>}
     </>
   );
   return to ? (
-    <Link to={to} className="card block p-4 transition-colors hover:border-border-strong hover:bg-surface-hover">
+    <Link to={to} className="card relative block overflow-hidden p-4 transition-colors hover:border-border-strong hover:bg-surface-hover">
       {body}
     </Link>
   ) : (
-    <div className="card p-4">{body}</div>
+    <div className="card relative overflow-hidden p-4">{body}</div>
   );
 }
 
@@ -235,14 +275,29 @@ export function Toaster() {
   );
 }
 
-export function PageHeader({ title, description, actions }: { title: string; description?: ReactNode; actions?: ReactNode }) {
+export function PageHeader({ title, description, actions, icon, steps }: { title: string; description?: ReactNode; actions?: ReactNode; icon?: LucideIcon; steps?: string[] }) {
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 className="text-xl font-semibold sm:text-2xl">{title}</h1>
-        {description && <p className="mt-1 max-w-2xl text-sm text-muted">{description}</p>}
+    <div className="mb-2 flex flex-col gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex items-start gap-3">
+          {icon && <IconChip icon={icon} />}
+          <div>
+            <h1 className="text-xl font-semibold sm:text-2xl">{title}</h1>
+            {description && <p className="mt-1 max-w-2xl text-sm text-muted">{description}</p>}
+          </div>
+        </div>
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {steps && steps.length > 0 && (
+        <ol className="flex flex-wrap gap-2" aria-label="How this page works">
+          {steps.map((step, i) => (
+            <li key={step} className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted">
+              <span className="flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-on-primary">{i + 1}</span>
+              {step}
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }

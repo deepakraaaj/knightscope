@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Download, Gauge, Upload } from 'lucide-react';
+import { Cpu, Database, Download, Gauge, GraduationCap, Info, Palette, Settings as SettingsIcon, SlidersHorizontal, Upload, UserRound } from 'lucide-react';
 import { useSettings } from '@/hooks/data';
 import { allUsernames, exportAll, importAll, refreshUserColors, saveSettings, DEFAULT_SETTINGS } from '@/storage/repositories';
 import { DEFAULT_THRESHOLDS } from '@/chess/classification/classify';
@@ -118,9 +118,9 @@ export function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Settings" description="Everything is stored on this device." />
+      <PageHeader icon={SettingsIcon} title="Settings" description="Everything is stored on this device. Start by adding your usernames so KnightScope knows which side you played." />
 
-      <Card title="Your accounts">
+      <Card icon={UserRound} piece="king" title="Your accounts" hint="Tells KnightScope which player is you">
         <p className="mb-3 text-sm text-muted">Used to know which side you played, so reviews, mistake memory and analytics focus on your moves. No password is needed or stored.</p>
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="flex flex-col gap-1"><span className="label">Chess.com username</span><input className="input" value={names.chesscom} onChange={(e) => setNames({ ...names, chesscom: e.target.value })} autoCapitalize="off" spellCheck={false} /></label>
@@ -130,7 +130,7 @@ export function SettingsPage() {
         <Button className="mt-3" variant="primary" onClick={saveNames}>Save usernames</Button>
       </Card>
 
-      <Card title="Analysis engine">
+      <Card icon={Cpu} piece="queen" title="Analysis engine" hint="Faster presets suit phones; deeper presets are more thorough">
         <div className="flex flex-col gap-5">
           <div>
             <div className="label mb-2">Engine</div>
@@ -183,7 +183,7 @@ export function SettingsPage() {
         </div>
       </Card>
 
-      <Card title="Explanations and training">
+      <Card icon={GraduationCap} piece="knight" title="Explanations and training" hint="How explanations are worded and how strict training is">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <div className="label mb-2">Explanation level</div>
@@ -194,7 +194,7 @@ export function SettingsPage() {
         </div>
       </Card>
 
-      <Card title="Move classification thresholds">
+      <Card icon={SlidersHorizontal} piece="bishop" title="Move classification thresholds" hint="Advanced: how labels like Mistake and Blunder are decided">
         <p className="mb-3 text-sm text-muted">Maximum winning-chance loss (percentage points) for each label. Changes apply to games analyzed afterwards.</p>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           <NumberField label="Excellent ≤" value={t.excellent} min={0} max={t.good} step={0.5} onChange={(n) => setT('excellent', n)} />
@@ -207,7 +207,7 @@ export function SettingsPage() {
         <Button className="mt-3" size="sm" variant="ghost" onClick={() => save({ thresholds: DEFAULT_THRESHOLDS })}>Reset to defaults</Button>
       </Card>
 
-      <Card title="Appearance">
+      <Card icon={Palette} piece="pawn" title="Appearance" hint="Colour theme, board colours and coordinates">
         <div className="flex flex-wrap gap-6">
           <div>
             <div className="label mb-2">Theme</div>
@@ -225,7 +225,7 @@ export function SettingsPage() {
         </div>
       </Card>
 
-      <Card title="Your data">
+      <Card icon={Database} piece="rook" title="Your data" hint="Back up or restore everything on this device">
         <div className="flex flex-col gap-3">
           {storage && <p className="text-sm text-muted">Using {(storage.usage / 1024 / 1024).toFixed(1)} MB of local storage{storage.quota ? ` (browser allows up to ${(storage.quota / 1024 / 1024 / 1024).toFixed(1)} GB)` : ''}.</p>}
           <div className="flex flex-wrap gap-2">
@@ -238,7 +238,7 @@ export function SettingsPage() {
         </div>
       </Card>
 
-      <Card title="About and licences">
+      <Card icon={Info} title="About and licences">
         <div className="space-y-2 text-sm text-muted">
           <p>KnightScope analyzes games with <a className="text-primary" href="https://stockfishchess.org" target="_blank" rel="noopener noreferrer">Stockfish</a> (GPL-3.0) via <a className="text-primary" href="https://github.com/nmrugg/stockfish.js" target="_blank" rel="noopener noreferrer">stockfish.js</a>. The engine licence is shipped with the app in engines/STOCKFISH-LICENSE.txt, and the engine source is available at <a className="text-primary" href="https://github.com/nmrugg/stockfish.js" target="_blank" rel="noopener noreferrer">github.com/nmrugg/stockfish.js</a> (the Android build uses the commit and patch listed in native/build-android-engine.sh). Opening names come from the Lichess chess-openings dataset (CC0).</p>
           <p>Move labels, accuracy and explanations are KnightScope’s own heuristics built on engine evaluations. They are not equivalent to any other site’s scores, and the tactic detector does not find every tactic.</p>
